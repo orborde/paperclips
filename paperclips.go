@@ -20,15 +20,11 @@ type Board struct {
 	CurrentPlayerIndex int
 	WinningPlayerIndex int
 	// TODO: Move history?
-	BoardID string
+	ID string
 }
 
-func MakeBoard(Players []string, StartCount int, Id string) *Board {
-	var ret Board
-	ret.PaperclipCount = StartCount
-	ret.Players = Players
-	ret.BoardID = Id
-	return &ret
+func NewBoard(Players []string, StartCount int, Id string) *Board {
+	return &Board{PaperclipCount: StartCount, Players: Players, ID: Id}
 }
 
 func (b *Board) Render() string {
