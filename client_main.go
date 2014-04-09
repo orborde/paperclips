@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"paperclips/paperclips"
+	"strconv"
 )
 
 const host string = "localhost"
@@ -22,27 +23,13 @@ func main() {
 	client := paperclips.NewRPCClient(conn)
 	defer client.Close()
 
-	players := []paperclips.PlayerID{"kim", "joe"}
-	for _, p := range players {
-		err := client.RegisterPlayer(p)
-		if err != nil {
-			log.Println("call error: ", err)
+	var name paperclips.PlayerID
+	for i := 0; ; i++ {
+		name = paperclips.PlayerID("Player" + strconv.Itoa(i))
+		if client.RegisterPlayer(name) == nil {
+			break
 		}
 	}
 
-	{
-		boardId, err := client.NewGame(players, 5)
-		if err != nil {
-			log.Fatal("Failed to create a game")
-		}
-		fmt.Println("Game created:", boardId)
-	}
-
-	for _, p := range players {
-		data, err := client.GetGames(p)
-		if err != nil {
-			log.Fatal("Fetch failure:", err)
-		}
-		log.Println(p, "games are", data)
-	}
+	log.Println("My name is", name)
 }
