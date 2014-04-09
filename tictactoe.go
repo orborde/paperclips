@@ -54,11 +54,11 @@ type Move struct {
 }
 
 func (m *Move) Valid() (bool, error) {
-	if (m.x < 0 || m.x > 2 ||
-		m.y < 0 || m.y > 2) {
+	if m.x < 0 || m.x > 2 ||
+		m.y < 0 || m.y > 2 {
 		return false, errors.New("Out of bounds")
 	}
-	if (m.tile != X && m.tile != O) {
+	if m.tile != X && m.tile != O {
 		return false, errors.New("Not a placeable tile")
 	}
 	return true, nil
@@ -73,4 +73,3 @@ func Valid(m *Move, b *Board) (bool, error) {
 	}
 	return true, nil
 }
-

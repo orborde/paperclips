@@ -21,7 +21,7 @@ func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
 		return errors.New("Invalid player")
 	}
 
-	targetBoard, boardExists := s.games[player][board];
+	targetBoard, boardExists := s.games[player][board]
 	if !boardExists {
 		return errors.New("Invalid board")
 	}
@@ -30,5 +30,5 @@ func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
 		return errors.New("Invalid move: " + err.Error())
 	}
 
-	return nil;
+	return nil
 }

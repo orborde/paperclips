@@ -3,8 +3,7 @@ package tictactoe
 import "testing"
 
 func TestRender(t *testing.T) {
-	const render = (
-		"X|O| " +
+	const render = ("X|O| " +
 		"-----" +
 		" | | " +
 		"-----" +
