@@ -31,21 +31,22 @@ func (s *Server) getNextBoardId() BoardID {
 	return ret
 }
 
-func (s *Server) NewGame(Players []PlayerID, StartCount int) error {
+func (s *Server) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
 	for _, p := range Players {
 		if !s.PlayerExists(p) {
 			//return errors.New("Player " + string(p) + " does not exist on server")
 			if err := s.NewPlayer(p); err != nil {
-				return err
+				return "", err
 			}
 		}
 	}
 
 	board := NewBoard(Players, StartCount, s.getNextBoardId())
+	ID := board.ID
 	for _, p := range Players {
-		s.games[p][board.ID] = board
+		s.games[p][ID] = board
 	}
-	return nil
+	return ID, nil
 }
 
 func (s *Server) GetGames(P PlayerID) (map[BoardID]*Board, error) {
