@@ -15,9 +15,9 @@ const (
 
 type Board struct {
 	PaperclipCount int
-	Players []string
+	Players        []string
 	// Indices into the Players[] array
-	NextPlayer int
+	NextPlayer    int
 	WinningPlayer int
 	// TODO: Move history?
 	BoardID string
