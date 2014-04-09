@@ -73,6 +73,11 @@ RPC Methods:
 
 	At least, that's the theory. I think this is not a good design.
 
+	Weaknesses:
+	- Multiple clients on the same Player.
+	- What about the time between when you download the user data and
+    the moment you start the Long Poll?
+
 
 Servers, round 1:
 Game server:
