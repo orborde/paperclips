@@ -9,7 +9,7 @@ func TestRender(t *testing.T) {
 		" | | " +
 		"-----" +
 		"X|X|O")
-	data := Map{
+	data := Board{
 		{X, O, Blank},
 		{Blank, Blank, Blank},
 		{X, X, O},

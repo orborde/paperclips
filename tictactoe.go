@@ -25,9 +25,9 @@ func (t *Tile) Render() string {
 	}
 }
 
-type Map [3][3]Tile
+type Board [3][3]Tile
 
-func (m *Map) Render() string {
+func (m *Board) Render() string {
 	lines := make([]string, 0)
 	for x := 0; x < 3; x++ {
 		line := make([]string, 0)
@@ -53,7 +53,7 @@ func (m *Move) Valid() bool {
 	return true
 }
 
-func Valid(m *Move, b *Map) {
+func Valid(m *Move, b *Board) {
 	if !m.Valid() ||
 		b[m.x][m.y] != Blank {
 		return false
