@@ -3,19 +3,49 @@ package paperclips
 import (
 	"errors"
 	"fmt"
+	"strconv"
 )
-
-type PlayerID string
-type BoardID string
 
 // TODO: make interface?
 type Server struct {
-	games map[PlayerID]map[BoardID]*Board
+	games       map[PlayerID]map[BoardID]*Board
+	nextBoardId uint64
 }
 
 func (s *Server) PlayerExists(P PlayerID) bool {
 	_, ret := s.games[P]
 	return ret
+}
+
+func (s *Server) NewPlayer(Name PlayerID) error {
+	if s.PlayerExists(Name) {
+		return errors.New("Player " + string(Name) + " already exists on server")
+	}
+	s.games[Name] = make(map[BoardID]*Board)
+	return nil
+}
+
+func (s *Server) getNextBoardId() BoardID {
+	ret := BoardID(strconv.FormatUint(s.nextBoardId, 10))
+	s.nextBoardId++
+	return ret
+}
+
+func (s *Server) NewGame(Players []PlayerID, StartCount int) error {
+	for _, p := range Players {
+		if !s.PlayerExists(p) {
+			//return errors.New("Player " + string(p) + " does not exist on server")
+			if err := s.NewPlayer(p); err != nil {
+				return err
+			}
+		}
+	}
+
+	board := NewBoard(Players, StartCount, s.getNextBoardId())
+	for _, p := range Players {
+		s.games[p][board.ID] = board
+	}
+	return nil
 }
 
 func (s *Server) GetGames(P PlayerID) (map[BoardID]*Board, error) {

@@ -13,17 +13,20 @@ const (
 	TakeTwo Move = 2
 )
 
+type PlayerID string
+type BoardID string
+
 type Board struct {
 	PaperclipCount int
-	Players        []string
+	Players        []PlayerID
 	// Indices into the Players[] array
 	CurrentPlayerIndex int
 	WinningPlayerIndex int
 	// TODO: Move history?
-	ID string
+	ID BoardID
 }
 
-func NewBoard(Players []string, StartCount int, Id string) *Board {
+func NewBoard(Players []PlayerID, StartCount int, Id BoardID) *Board {
 	return &Board{PaperclipCount: StartCount, Players: Players, ID: Id}
 }
 
@@ -49,11 +52,11 @@ func (b *Board) GameOver() bool {
 	return b.PaperclipCount == 0
 }
 
-func (b *Board) CurrentPlayer() string {
+func (b *Board) CurrentPlayer() PlayerID {
 	return b.Players[b.CurrentPlayerIndex]
 }
 
-func (b *Board) WinningPlayer() string {
+func (b *Board) WinningPlayer() PlayerID {
 	if !b.GameOver() {
 		return ""
 	}

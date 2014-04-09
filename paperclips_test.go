@@ -31,7 +31,7 @@ func TestMoveBounds(t *testing.T) {
 }
 
 func TestGamePlay(t *testing.T) {
-	TestMoveSequence := func(players []string, startCount int, moves []Move, expectedTurnSequence []string, expectedWinner string) {
+	TestMoveSequence := func(players []PlayerID, startCount int, moves []Move, expectedTurnSequence []PlayerID, expectedWinner PlayerID) {
 		board := NewBoard(players, startCount, "TestGame")
 		Play := func(idx int, m *Move) {
 			prevPlayer := board.CurrentPlayer()
@@ -43,7 +43,7 @@ func TestGamePlay(t *testing.T) {
 			}
 		}
 
-		TestTurnSequence := func(expected, actual []string) {
+		TestTurnSequence := func(expected, actual []PlayerID) {
 			ok := len(expected) == len(actual)
 			for i := range expected {
 				if expected[i] != actual[i] {
@@ -55,7 +55,7 @@ func TestGamePlay(t *testing.T) {
 			}
 		}
 
-		turnSequence := []string{players[0]}
+		turnSequence := []PlayerID{players[0]}
 		for i, m := range moves {
 			Play(i, &m)
 			turnSequence = append(turnSequence, board.CurrentPlayer())
@@ -68,16 +68,16 @@ func TestGamePlay(t *testing.T) {
 		}
 	}
 
-	TestMoveSequence([]string{"a", "b"}, 5,
-		[]Move{1, 2, 1, 1}, []string{"a", "b", "a", "b", "a"}, "b")
+	TestMoveSequence([]PlayerID{"a", "b"}, 5,
+		[]Move{1, 2, 1, 1}, []PlayerID{"a", "b", "a", "b", "a"}, "b")
 
-	TestMoveSequence([]string{"a", "b", "c"}, 5,
-		[]Move{1, 2, 1, 1}, []string{"a", "b", "c", "a", "b"}, "a")
+	TestMoveSequence([]PlayerID{"a", "b", "c"}, 5,
+		[]Move{1, 2, 1, 1}, []PlayerID{"a", "b", "c", "a", "b"}, "a")
 
-	TestMoveSequence([]string{"b", "a"}, 4,
-		[]Move{1, 1, 2}, []string{"b", "a", "b", "a"}, "b")
+	TestMoveSequence([]PlayerID{"b", "a"}, 4,
+		[]Move{1, 1, 2}, []PlayerID{"b", "a", "b", "a"}, "b")
 
-	TestMoveSequence([]string{"b", "a"}, 4,
-		[]Move{1, 1, 1, 1}, []string{"b", "a", "b", "a", "b"}, "a")
+	TestMoveSequence([]PlayerID{"b", "a"}, 4,
+		[]Move{1, 1, 1, 1}, []PlayerID{"b", "a", "b", "a", "b"}, "a")
 
 }
