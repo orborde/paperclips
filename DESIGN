@@ -1,4 +1,4 @@
-Tic Tac Toe: The Networked Multiplayer Game To End Them All
+Paperclips: The Networked Multiplayer Game To End Them All
 
 Features we want:
 
@@ -21,17 +21,17 @@ Features we want:
 CORE DATA MODEL:
 
 Board: a game state. Has the following entries:
- - X player ID
- - O player ID
+ - Number of paperclips
+ - List of players
  - Whose turn it is
- - Board grid
- - Move history?d
+ - Winner, if any
+ - Move history?
  - Board ID
 
 Move: a move to be applied
  - Originating player ID
  - Originating board ID
- - Move description (x,y)
+ - Move description (paperclip count, 1 or 2)
 
 
 RPC Methods:
