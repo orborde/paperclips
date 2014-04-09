@@ -12,6 +12,10 @@ type Server struct {
 	nextBoardId uint64
 }
 
+func NewServer() *Server {
+	return &Server{make(map[PlayerID]map[BoardID]*Board), 0}
+}
+
 func (s *Server) PlayerExists(P PlayerID) bool {
 	_, ret := s.games[P]
 	return ret
@@ -74,7 +78,11 @@ func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
 }
 
 type RPCServer struct {
-	server Server
+	server *Server
+}
+
+func NewRPCServer() *RPCServer {
+	return &RPCServer{NewServer()}
 }
 
 func (s *RPCServer) RegisterPlayer(P PlayerID, _ *struct{}) error {

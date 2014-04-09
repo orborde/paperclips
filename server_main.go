@@ -15,8 +15,8 @@ var address string = host + ":" + port
 
 func main() {
 	fmt.Println("Starting up RPC server...")
-	var server paperclips.RPCServer
-	rpc.Register(&server)
+	server := paperclips.NewRPCServer()
+	rpc.Register(server)
 	fmt.Println("Now listening on", address)
 	l, e := net.Listen("tcp", address)
 	if e != nil {
