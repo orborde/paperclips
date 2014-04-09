@@ -52,3 +52,12 @@ func (m *Move) Valid() bool {
 	}
 	return true
 }
+
+func Valid(m *Move, b *Map) {
+	if !m.Valid() ||
+		b[m.x][m.y] != Blank {
+		return false
+	}
+	return true
+}
+
