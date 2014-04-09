@@ -6,100 +6,14 @@ import (
 	"strconv"
 )
 
-type Mailbox struct {
-	incoming chan BoardID
-	poll     chan BoardID
-	closer   chan bool
-}
-
-func NewMailbox() *Mailbox {
-	ret := Mailbox{make(chan BoardID), make(chan BoardID), make(chan bool)}
-	go ret.run()
-	return &ret
-}
-
-func (b *Mailbox) run() {
-	queued := make(map[BoardID]bool)
-	defer close(b.incoming)
-	defer close(b.poll)
-	defer close(b.closer)
-
-	for {
-		// Depending on whether we have data to write out, use one of two selects
-		//
-		// TODO: There has to be a way to simplify this...
-		add := func(id BoardID) {
-			queued[id] = true
-		}
-		rm := func(id BoardID) {
-			delete(queued, id)
-		}
-
-		if len(queued) > 0 {
-			// If we have data, try to shove it out on the poll channel
-			// while waiting for possible other data.
-			var nextOut BoardID
-			for nextOut, _ = range queued {
-				break
-			}
-
-			select {
-			case in := <-b.incoming:
-				add(in)
-			case b.poll <- nextOut:
-				rm(nextOut)
-			case <-b.closer:
-				break
-			}
-
-		} else {
-			// In the absence of ready outbound data, wait only on the input
-			// side.
-			select {
-			case in := <-b.incoming:
-				add(in)
-			case <-b.closer:
-				break
-			}
-		}
-	}
-}
-
-func (b *Mailbox) Send(Id BoardID) {
-	// Should return immediately, since the receiver is
-	// busylooping. That is, if you set the thing up properly.
-	b.incoming <- Id
-}
-
-func (b *Mailbox) Poll() (BoardID, bool) {
-	// Wait until some data comes out. Or until the channel closes.
-	data, ok := <-b.poll
-	return data, ok
-}
-
-func (b *Mailbox) Shutdown() {
-	// Should return immediately, since the receiver is
-	// busylooping. That is, if you set the thing up properly.
-	b.closer <- true
-}
-
 // TODO: make interface?
 type Server struct {
 	games       map[PlayerID]map[BoardID]*Board
 	nextBoardId uint64
-	mailboxes   map[PlayerID]*Mailbox
 }
 
 func NewServer() *Server {
-	return &Server{make(map[PlayerID]map[BoardID]*Board), 0,
-		make(map[PlayerID]*Mailbox)}
-}
-
-func (s *Server) Shutdown() {
-	// TODO: Defer calls somehow instead?
-	for _, box := range s.mailboxes {
-		box.Shutdown()
-	}
+	return &Server{make(map[PlayerID]map[BoardID]*Board), 0}
 }
 
 func (s *Server) PlayerExists(P PlayerID) bool {
