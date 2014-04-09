@@ -45,7 +45,14 @@ func (b *Board) Apply(move *Move) error {
 	if valid, err := Valid(move, b); !valid {
 		return errors.New(fmt.Sprint("Could not apply move ", move, ":", err.Error()))
 	}
+	b[move.x][move.y] = move.tile
 	return nil
+}
+
+func (b *Board) Winner() Tile {
+	checkWin := func(x, y []int) Tile {
+
+	}
 }
 
 type Move struct {
