@@ -3,6 +3,7 @@ package paperclips
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 )
 
@@ -86,6 +87,7 @@ func NewRPCServer() *RPCServer {
 }
 
 func (s *RPCServer) RegisterPlayer(P PlayerID, _ *struct{}) error {
+	log.Println("Registering player", P)
 	return s.server.NewPlayer(P)
 }
 
@@ -95,12 +97,14 @@ type RPCNewGameArgs struct {
 }
 
 func (s *RPCServer) NewGame(Args RPCNewGameArgs, Id *BoardID) error {
+	log.Println("Configuring a new game with args", Args)
 	id, err := s.server.NewGame(Args.Players, Args.StartCount)
 	*Id = id
 	return err
 }
 
 func (s *RPCServer) GetGames(P PlayerID, Ret *map[BoardID]*Board) error {
+	log.Println("Fetching games for player", P)
 	var err error
 	*Ret, err = s.server.GetGames(P)
 	return err
@@ -115,5 +119,6 @@ type RPCMove struct {
 }
 
 func (s *RPCServer) MakeMove(Args RPCMove, _ *struct{}) error {
+	log.Println("Processing move", Args)
 	return s.server.MakeMove(Args.Player, Args.BoardID, Args.Move)
 }
