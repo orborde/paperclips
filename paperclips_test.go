@@ -31,7 +31,7 @@ func TestMoveBounds(t *testing.T) {
 }
 
 func TestGamePlay(t *testing.T) {
-	TestMoveSequence := func(players []string, startCount int, moves []Move, expectedWinner string) {
+	TestMoveSequence := func(players []string, startCount int, moves []Move, expectedTurnSequence []int, expectedWinner string) {
 		var board Board
 		board.Players = players
 		board.PaperclipCount = startCount
@@ -45,9 +45,25 @@ func TestGamePlay(t *testing.T) {
 			}
 		}
 
+		TestTurnSequence := func(expected, actual []int) {
+			ok := len(expected) == len(actual)
+			for i := range expected {
+				if expected[i] != actual[i] {
+					ok = false
+				}
+			}
+			if !ok {
+				t.Error("Unexpected turn sequence", actual, ", expected", expected)
+			}
+		}
+
+		turnSequence := []int{0}
 		for i, m := range moves {
 			Play(i, &m)
+			turnSequence = append(turnSequence, board.NextPlayer)
 		}
+
+		TestTurnSequence(expectedTurnSequence, turnSequence)
 
 		if expectedWinner != "" && expectedWinner != board.Winner() {
 			t.Error("Expected", expectedWinner, "to win, but", board.Winner(), "won")
@@ -55,15 +71,15 @@ func TestGamePlay(t *testing.T) {
 	}
 
 	TestMoveSequence([]string{"a", "b"}, 5,
-		[]Move{1, 2, 1, 1}, "b")
+		[]Move{1, 2, 1, 1}, []int{0, 1, 0, 1, 0}, "b")
 
 	TestMoveSequence([]string{"a", "b", "c"}, 5,
-		[]Move{1, 2, 1, 1}, "a")
+		[]Move{1, 2, 1, 1}, []int{0, 1, 2, 0, 1}, "a")
 
 	TestMoveSequence([]string{"b", "a"}, 4,
-		[]Move{1, 1, 2}, "b")
+		[]Move{1, 1, 2}, []int{0, 1, 0, 1}, "b")
 
 	TestMoveSequence([]string{"b", "a"}, 4,
-		[]Move{1, 1, 1, 1}, "a")
+		[]Move{1, 1, 1, 1}, []int{0, 1, 0, 1, 0}, "a")
 
 }
