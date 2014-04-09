@@ -22,12 +22,14 @@ func TestRender(t *testing.T) {
 
 func TestMoveBounds(t *testing.T) {
 	ExpectValid := func(m Move) {
-		if !m.Valid() {
+		if val, err := m.Valid(); !val {
+			t.Error(err)
 			t.Error("Move", m, "was supposed to be valid!")
 		}
 	}
 	ExpectInvalid := func(m Move) {
-		if m.Valid() {
+		if val, err := m.Valid(); val {
+			t.Error(err)
 			t.Error("Move", m, "was supposed to be invalid!")
 		}
 	}

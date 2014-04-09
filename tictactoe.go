@@ -1,6 +1,7 @@
 package tictactoe
 
 import (
+	"errors"
 	"strings"
 )
 
@@ -44,20 +45,24 @@ type Move struct {
 	tile Tile
 }
 
-func (m *Move) Valid() bool {
-	if m.x < 0 || m.x > 2 ||
-		m.y < 0 || m.y > 2 ||
-		(m.tile != X && m.tile != O) {
-		return false
+func (m *Move) Valid() (bool, error) {
+	if (m.x < 0 || m.x > 2 ||
+		m.y < 0 || m.y > 2) {
+		return false, errors.New("Out of bounds")
 	}
-	return true
+	if (m.tile != X && m.tile != O) {
+		return false, errors.New("Not a placeable tile")
+	}
+	return true, nil
 }
 
-func Valid(m *Move, b *Board) bool {
-	if !m.Valid() ||
-		b[m.x][m.y] != Blank {
-		return false
+func Valid(m *Move, b *Board) (bool, error) {
+	if valid, err := m.Valid(); !valid {
+		return false, err
 	}
-	return true
+	if b[m.x][m.y] != Blank {
+		return false, errors.New("Tile is occupied")
+	}
+	return true, nil
 }
 
