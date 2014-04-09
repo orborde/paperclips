@@ -32,9 +32,7 @@ func TestMoveBounds(t *testing.T) {
 
 func TestGamePlay(t *testing.T) {
 	TestMoveSequence := func(players []string, startCount int, moves []Move, expectedTurnSequence []string, expectedWinner string) {
-		var board Board
-		board.Players = players
-		board.PaperclipCount = startCount
+		board := MakeBoard(players, startCount, "TestGame")
 		Play := func(idx int, m *Move) {
 			prevPlayer := board.CurrentPlayer()
 			if err := board.Apply(m); err != nil {

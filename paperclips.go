@@ -23,6 +23,14 @@ type Board struct {
 	BoardID string
 }
 
+func MakeBoard(Players []string, StartCount int, Id string) *Board {
+	var ret Board
+	ret.PaperclipCount = StartCount
+	ret.Players = Players
+	ret.BoardID = Id
+	return &ret
+}
+
 func (b *Board) Render() string {
 	return strconv.Itoa(b.PaperclipCount)
 }
