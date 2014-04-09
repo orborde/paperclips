@@ -7,8 +7,8 @@ import (
 type Tile int
 
 const (
-	X Tile = iota
-	O Tile = iota
+	X     Tile = iota
+	O     Tile = iota
 	Blank Tile = iota
 )
 
@@ -37,4 +37,18 @@ func (m *Map) Render() string {
 		lines = append(lines, strings.Join(line, "|"))
 	}
 	return strings.Join(lines, "-----")
+}
+
+type Move struct {
+	x, y int
+	tile Tile
+}
+
+func (m *Move) Valid() bool {
+	if m.x < 0 || m.x > 2 ||
+		m.y < 0 || m.y > 2 ||
+		(m.tile != X && m.tile != O) {
+		return false
+	}
+	return true
 }
