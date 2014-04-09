@@ -101,6 +101,7 @@ func (s *RPCServer) GetGames(P PlayerID, Ret *map[BoardID]*Board) error {
 type RPCMove struct {
 	Player PlayerID
 	// TODO: check that player is on board
+	// TODO: handle moves from stale board states
 	BoardID BoardID
 	Move    Move
 }
