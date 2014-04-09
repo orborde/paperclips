@@ -49,34 +49,42 @@ RPC Methods:
 			  "screw you, clown" from the server is appropriate here.
 			- Move was not made. Client should store it and try again later.
 
-- Poll(Player): Sit around and wait until the server has a state
-  update to send us. When it does, this method returns
-  immediately. This is useful for writing AIs and other things that
-  wish to react immediately to a server state change.
+- Poll(Player, lastUpdateTime): The server will keep a monotonically
+  increasing counter of the number of state changes it has made. Each
+  object will, when its state changes, be timestamped from this
+  central counter. Poll() will return immediately with a list of
+  Boards that have been updated after lastUpdateTime; if none are
+  available, Poll() will block until one of Player's boards receives
+  an update, and then send back the updates.
 
-	Design: The above is somewhat complicated to implement. The general
-	idea is that, for each Player, we want to have a queue of updates
-	that need to be pushed. The queue should not contain duplicate
-	entries and is this implemented as a set.
+	Improvements over previous:
 
-	TODO: Does the Poll() method need to support multiple concurrent
-	pollers? .... probably....
+	- Multiple clients on the same Player will work fine. The client is
+	  responsible for keeping track of how far back it needs to reach
+	  for updates, and each client tracks it independently.
 
-	TODO: Should Poll() return one (or a list of) update(s) immediately,
-	or is a simple signal that "something is up" sufficient?
+	- The time between when you download the user data and the moment
+    you start the Long Poll is no longer a problem. You'll get a
+    snapshot of any changes as soon as you ask for changes, and
+    otherwise, you'll sit and wait for changes.
 
-	The queues are implemented as Mailbox objects. The job of a Mailbox
-	is to accept incoming messages, deduplicate them against what's
-	waiting, and respond to Poll() requests. A Poll() request will
-	immediately return if any messages have accumulated since the last
-	Poll(), and otherwise will block until some arrive.
+	Detailed design:
 
-	At least, that's the theory. I think this is not a good design.
+	== Counter management ==
+	
+	Every write operation on the server will increment a counter. This
+	counter is used to timestamp each Board on the server with its last
+	update time.
 
-	Weaknesses:
-	- Multiple clients on the same Player.
-	- What about the time between when you download the user data and
-    the moment you start the Long Poll?
+	Immediate-return polling is easy to implement; simply scan the set
+	of Boards for this player and return immediately if any have been
+	updated since the lastUpateTime.
+
+	Long Polling requires some fancier infrastructure. We need to keep a
+	list of outstanding Poll requests for each player and alert the
+	player when a change happens. We need to make sure that additional
+	incoming Poll requests begun while a notification is in progress get
+	stored and added to the next queue.
 
 
 Servers, round 1:
