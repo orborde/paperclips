@@ -77,6 +77,21 @@ type RPCServer struct {
 	server Server
 }
 
+func (s *RPCServer) RegisterPlayer(P PlayerID, _ *struct{}) error {
+	return s.server.NewPlayer(P)
+}
+
+type RPCNewGameArgs struct {
+	Players    []PlayerID
+	StartCount int
+}
+
+func (s *RPCServer) NewGame(Args RPCNewGameArgs, Id *BoardID) error {
+	id, err := s.server.NewGame(Args.Players, Args.StartCount)
+	*Id = id
+	return err
+}
+
 func (s *RPCServer) GetGames(P PlayerID, Ret *map[BoardID]*Board) error {
 	var err error
 	*Ret, err = s.server.GetGames(P)
