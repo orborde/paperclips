@@ -31,21 +31,21 @@ func TestMoveBounds(t *testing.T) {
 }
 
 func TestGamePlay(t *testing.T) {
-	TestMoveSequence := func(players []string, startCount int, moves []Move, expectedTurnSequence []int, expectedWinner string) {
+	TestMoveSequence := func(players []string, startCount int, moves []Move, expectedTurnSequence []string, expectedWinner string) {
 		var board Board
 		board.Players = players
 		board.PaperclipCount = startCount
 		Play := func(idx int, m *Move) {
-			prevPlayer := board.NextPlayer
+			prevPlayer := board.CurrentPlayer()
 			if err := board.Apply(m); err != nil {
 				t.Error("Failed to apply move", idx, ":", m, ":", err.Error())
 			}
-			if board.NextPlayer == prevPlayer {
+			if board.CurrentPlayer() == prevPlayer {
 				t.Error("Failed to advance player counter?!")
 			}
 		}
 
-		TestTurnSequence := func(expected, actual []int) {
+		TestTurnSequence := func(expected, actual []string) {
 			ok := len(expected) == len(actual)
 			for i := range expected {
 				if expected[i] != actual[i] {
@@ -57,29 +57,29 @@ func TestGamePlay(t *testing.T) {
 			}
 		}
 
-		turnSequence := []int{0}
+		turnSequence := []string{players[0]}
 		for i, m := range moves {
 			Play(i, &m)
-			turnSequence = append(turnSequence, board.NextPlayer)
+			turnSequence = append(turnSequence, board.CurrentPlayer())
 		}
 
 		TestTurnSequence(expectedTurnSequence, turnSequence)
 
-		if expectedWinner != "" && expectedWinner != board.Winner() {
-			t.Error("Expected", expectedWinner, "to win, but", board.Winner(), "won")
+		if expectedWinner != "" && expectedWinner != board.WinningPlayer() {
+			t.Error("Expected", expectedWinner, "to win, but", board.WinningPlayer(), "won")
 		}
 	}
 
 	TestMoveSequence([]string{"a", "b"}, 5,
-		[]Move{1, 2, 1, 1}, []int{0, 1, 0, 1, 0}, "b")
+		[]Move{1, 2, 1, 1}, []string{"a", "b", "a", "b", "a"}, "b")
 
 	TestMoveSequence([]string{"a", "b", "c"}, 5,
-		[]Move{1, 2, 1, 1}, []int{0, 1, 2, 0, 1}, "a")
+		[]Move{1, 2, 1, 1}, []string{"a", "b", "c", "a", "b"}, "a")
 
 	TestMoveSequence([]string{"b", "a"}, 4,
-		[]Move{1, 1, 2}, []int{0, 1, 0, 1}, "b")
+		[]Move{1, 1, 2}, []string{"b", "a", "b", "a"}, "b")
 
 	TestMoveSequence([]string{"b", "a"}, 4,
-		[]Move{1, 1, 1, 1}, []int{0, 1, 0, 1, 0}, "a")
+		[]Move{1, 1, 1, 1}, []string{"b", "a", "b", "a", "b"}, "a")
 
 }
