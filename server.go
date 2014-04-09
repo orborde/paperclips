@@ -9,7 +9,7 @@ type Server struct {
 }
 
 func (s *Server) GetGames(P PlayerID) map[BoardID]Map {
-	return s.games[p]
+	return s.games[P]
 }
 
 func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
@@ -17,12 +17,14 @@ func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
 		return errors.New("Invalid player")
 	}
 
-	board, boardExists := s.games[player][board];
+	var targetBoard *Map
+	var boardExists bool
+	targetBoard, boardExists = s.games[player][board];
 	if !boardExists {
 		return errors.New("Invalid board")
 	}
 
-	if !m.Valid(board) {
+	if !move.Valid(board) {
 		return errors.New("Invalid move")
 	}
 
