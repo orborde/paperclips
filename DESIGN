@@ -49,6 +49,30 @@ RPC Methods:
 			  "screw you, clown" from the server is appropriate here.
 			- Move was not made. Client should store it and try again later.
 
+- Poll(Player): Sit around and wait until the server has a state
+  update to send us. When it does, this method returns
+  immediately. This is useful for writing AIs and other things that
+  wish to react immediately to a server state change.
+
+	Design: The above is somewhat complicated to implement. The general
+	idea is that, for each Player, we want to have a queue of updates
+	that need to be pushed. The queue should not contain duplicate
+	entries and is this implemented as a set.
+
+	TODO: Does the Poll() method need to support multiple concurrent
+	pollers? .... probably....
+
+	TODO: Should Poll() return one (or a list of) update(s) immediately,
+	or is a simple signal that "something is up" sufficient?
+
+	The queues are implemented as Mailbox objects. The job of a Mailbox
+	is to accept incoming messages, deduplicate them against what's
+	waiting, and respond to Poll() requests. A Poll() request will
+	immediately return if any messages have accumulated since the last
+	Poll(), and otherwise will block until some arrive.
+
+	At least, that's the theory. I think this is not a good design.
+
 
 Servers, round 1:
 Game server:
