@@ -56,4 +56,14 @@ func TestGamePlay(t *testing.T) {
 	
 	TestMoveSequence([]string{"a", "b"}, 5,
 		[]Move{1, 2, 1, 1}, "b")
+
+	TestMoveSequence([]string{"a", "b", "c"}, 5,
+		[]Move{1, 2, 1, 1}, "a")
+
+	TestMoveSequence([]string{"b", "a"}, 4,
+		[]Move{1, 1, 2}, "b")
+
+		TestMoveSequence([]string{"b", "a"}, 4,
+			[]Move{1, 1, 1, 1}, "a")
+	
 }
