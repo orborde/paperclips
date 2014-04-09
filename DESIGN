@@ -1,0 +1,58 @@
+Tic Tac Toe: The Networked Multiplayer Game To End Them All
+
+Features we want:
+
+- Asynchrony. We want clients to be able to pull down all their
+	involved games in the background, and for the user to be able to
+	interact with them instantly. No network round trips on the user
+	workflow's critical path.
+- Reliability. This has a couple parts:
+	- We don't want to lose games or moves serverside at all.
+	- Once data has been confirmed by the server, it shouldn't be lost,
+    ever.
+	- Clients should store and forward their moves. They should never be
+    dropped on the floor unless the device fails or if they are being
+    made from an out-of-date game state. The latter doesn't happen
+    much because clients won't usually be playing from multiple
+    computers at once, so blackholing is a perfectly fine strategy for
+    a rare occurrence. Heck, you could even error out.
+
+
+CORE DATA MODEL:
+
+Board: a game state. Has the following entries:
+ - X player ID
+ - O player ID
+ - Whose turn it is
+ - Board grid
+ - Move history?d
+ - Board ID
+
+Move: a move to be applied
+ - Originating player ID
+ - Originating board ID
+ - Move description (x,y)
+
+
+RPC Methods:
+- GetGames(Player): Returns the current games list for Player
+- MakeMove(Board, Move):
+  Makes the given move on the given board, if possible.
+
+  Return values:
+    err: if nil, everything is great
+      Otherwise, returns an error. Probably something out of
+			these:
+			- Move is against an old board state. Client should drop the
+        move and optionally notify of a conflict.
+			- Move is bad. Client validation should have caught this, but a
+			  "screw you, clown" from the server is appropriate here.
+			- Move was not made. Client should store it and try again later.
+
+
+Servers, round 1:
+Game server:
+- Implements the RPC methods
+- Persists data in-memory (hah!)
+
+TODO: Persistent storage, reliability engineering.
