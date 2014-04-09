@@ -1,44 +1,31 @@
-package tictactoe
+package paperclips
 
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
-type Tile int
+type Move int
 
 const (
-	X     Tile = iota
-	O     Tile = iota
-	Blank Tile = iota
+	TakeOne Move = 1
+	TakeTwo Move = 2
 )
 
-func (t *Tile) Render() string {
-	switch *t {
-	case X:
-		return "X"
-	case O:
-		return "O"
-	case Blank:
-		return " "
-	default:
-		panic("Unknown tile type?!")
-	}
+type Board struct {
+	PaperclipCount int
+	Players []string
+	// Indices into the Players[] array
+	NextPlayer int
+	WinningPlayer int
+	// TODO: Move history?
+	BoardID string
 }
 
-type Board [3][3]Tile
-
-func (m *Board) Render() string {
-	lines := make([]string, 0)
-	for x := 0; x < 3; x++ {
-		line := make([]string, 0)
-		for y := 0; y < 3; y++ {
-			line = append(line, m[x][y].Render())
-		}
-		lines = append(lines, strings.Join(line, "|"))
-	}
-	return strings.Join(lines, "-----")
+func (b *Board) Render() string {
+	return strconv.Itoa(b.PaperclipCount)
 }
 
 func (b *Board) Apply(move *Move) error {

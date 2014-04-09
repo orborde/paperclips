@@ -1,4 +1,4 @@
-package tictactoe
+package paperclips
 
 import "testing"
 
