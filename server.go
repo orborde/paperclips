@@ -1,14 +1,18 @@
 package tictactoe
 
+import (
+	"errors"
+)
+
 type PlayerID string
 type BoardID string
 
 // TODO: make interface?
 type Server struct {
-	games map[PlayerID]map[BoardID]Board
+	games map[PlayerID]map[BoardID]*Board
 }
 
-func (s *Server) GetGames(P PlayerID) map[BoardID]Board {
+func (s *Server) GetGames(P PlayerID) map[BoardID]*Board {
 	return s.games[P]
 }
 
@@ -17,14 +21,12 @@ func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
 		return errors.New("Invalid player")
 	}
 
-	var targetBoard *Board
-	var boardExists bool
-	targetBoard, boardExists = s.games[player][board];
+	targetBoard, boardExists := s.games[player][board];
 	if !boardExists {
 		return errors.New("Invalid board")
 	}
 
-	if !move.Valid(board) {
+	if Valid(move, targetBoard) {
 		return errors.New("Invalid move")
 	}
 

@@ -53,7 +53,7 @@ func (m *Move) Valid() bool {
 	return true
 }
 
-func Valid(m *Move, b *Board) {
+func Valid(m *Move, b *Board) bool {
 	if !m.Valid() ||
 		b[m.x][m.y] != Blank {
 		return false
