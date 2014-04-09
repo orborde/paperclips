@@ -74,6 +74,9 @@ func Valid(m *Move, b *Board) (bool, error) {
 	if valid, err := m.Valid(); !valid {
 		return false, err
 	}
+	if b.GameOver() {
+		return false, errors.New("Game has already ended")
+	}
 	if int(*m) > b.PaperclipCount {
 		return false, errors.New("Not enough paperclips")
 	}
