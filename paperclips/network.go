@@ -1,7 +1,9 @@
 package paperclips
 
 import (
+	"io"
 	"log"
+	"net/rpc"
 )
 
 type RPCServer struct {
@@ -47,4 +49,35 @@ type RPCMove struct {
 func (s *RPCServer) MakeMove(Args RPCMove, _ *struct{}) error {
 	log.Println("Processing move", Args)
 	return s.server.MakeMove(Args.Player, Args.BoardID, Args.Move)
+}
+
+// Derp derp derp
+type RPCClient struct {
+	conn *io.ReadWriteCloser
+	rpc.Client
+}
+
+func NewRPCClient(Conn io.ReadWriteCloser) *RPCClient {
+	return (*RPCClient)(rpc.NewClient(Conn))
+}
+
+func (c *RPCClient) RegisterPlayer(P PlayerID) error {
+	return c.Call("RPCServer.RegisterPlayer", P, nil)
+}
+
+func (c *RPCClient) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
+	var id BoardID
+	err := c.Call("RPCServer.NewGame", RPCNewGameArgs{Players, StartCount}, &id)
+	return id, err
+}
+
+func (c *RPCClient) GetGames(P PlayerID) (map[BoardID]*Board, error) {
+	var ret map[BoardID]*Board
+	err := c.Call("RPCServer.GetGames", P, &ret)
+	return ret, err
+}
+
+func (c *RPCClient) MakeMove(Player PlayerID, Board BoardID, Move Move) error {
+	return c.Call("RPCServer.MakeMove",
+		RPCMove{Player, Board, Move}, nil)
 }
