@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net"
 	"net/rpc"
 	"paperclips/paperclips"
 )
@@ -14,13 +13,17 @@ const port string = "19996"
 var address string = host + ":" + port
 
 func main() {
-	fmt.Println("Starting up RPC server...")
-	var server paperclips.RPCServer
-	rpc.Register(&server)
-	fmt.Println("Now listening on", address)
-	l, e := net.Listen("tcp", address)
-	if e != nil {
-		log.Fatal("listen error:", e)
+	fmt.Println("Connecting to expected RPC server at", address)
+	client, err := rpc.Dial("tcp", address)
+	if err != nil {
+		log.Fatal("connect error: ", err)
 	}
-	rpc.Accept(l)
+
+	args := paperclips.PlayerID("potato-head")
+	{
+		err := client.Call("RPCServer.RegisterPlayer", args, nil)
+		if err != nil {
+			log.Fatal("call error: ", err)
+		}
+	}
 }
