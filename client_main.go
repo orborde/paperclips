@@ -20,10 +20,29 @@ func main() {
 	}
 
 	client := paperclips.NewRPCClient(conn)
-	{
-		err := client.RegisterPlayer("potato-head")
+	defer client.Close()
+
+	players := []paperclips.PlayerID{"kim", "joe"}
+	for _, p := range players {
+		err := client.RegisterPlayer(p)
 		if err != nil {
-			log.Fatal("call error: ", err)
+			log.Println("call error: ", err)
 		}
+	}
+
+	{
+		boardId, err := client.NewGame(players, 5)
+		if err != nil {
+			log.Fatal("Failed to create a game")
+		}
+		fmt.Println("Game created:", boardId)
+	}
+
+	for _, p := range players {
+		data, err := client.GetGames(p)
+		if err != nil {
+			log.Fatal("Fetch failure:", err)
+		}
+		log.Println(p, "games are", data)
 	}
 }
