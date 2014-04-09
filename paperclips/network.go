@@ -53,12 +53,11 @@ func (s *RPCServer) MakeMove(Args RPCMove, _ *struct{}) error {
 
 // Derp derp derp
 type RPCClient struct {
-	conn *io.ReadWriteCloser
-	rpc.Client
+	*rpc.Client
 }
 
 func NewRPCClient(Conn io.ReadWriteCloser) *RPCClient {
-	return (*RPCClient)(rpc.NewClient(Conn))
+	return &RPCClient{rpc.NewClient(Conn)}
 }
 
 func (c *RPCClient) RegisterPlayer(P PlayerID) error {
