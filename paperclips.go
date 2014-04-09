@@ -36,7 +36,7 @@ func (b *Board) Apply(move *Move) error {
 	if b.GameOver() {
 		b.WinningPlayer = b.NextPlayer
 	}
-	
+
 	b.NextPlayer = (b.NextPlayer + 1) % len(b.Players)
 	return nil
 }

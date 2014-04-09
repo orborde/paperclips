@@ -53,7 +53,7 @@ func TestGamePlay(t *testing.T) {
 			t.Error("Expected", expectedWinner, "to win, but", board.Winner(), "won")
 		}
 	}
-	
+
 	TestMoveSequence([]string{"a", "b"}, 5,
 		[]Move{1, 2, 1, 1}, "b")
 
@@ -63,7 +63,7 @@ func TestGamePlay(t *testing.T) {
 	TestMoveSequence([]string{"b", "a"}, 4,
 		[]Move{1, 1, 2}, "b")
 
-		TestMoveSequence([]string{"b", "a"}, 4,
-			[]Move{1, 1, 1, 1}, "a")
-	
+	TestMoveSequence([]string{"b", "a"}, 4,
+		[]Move{1, 1, 1, 1}, "a")
+
 }
