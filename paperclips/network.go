@@ -19,6 +19,12 @@ func (s *RPCServer) RegisterPlayer(P PlayerID, _ *struct{}) error {
 	return s.server.NewPlayer(P)
 }
 
+func (s *RPCServer) GetPlayerList(_ bool, Ret *[]PlayerID) error {
+	log.Println("Fetching player list")
+	*Ret = s.server.GetPlayerList()
+	return nil
+}
+
 type RPCNewGameArgs struct {
 	Players    []PlayerID
 	StartCount int
@@ -62,6 +68,12 @@ func NewRPCClient(Conn io.ReadWriteCloser) *RPCClient {
 
 func (c *RPCClient) RegisterPlayer(P PlayerID) error {
 	return c.Call("RPCServer.RegisterPlayer", P, nil)
+}
+
+func (c *RPCClient) GetPlayerList() ([]PlayerID, error) {
+	var ret []PlayerID
+	err := c.Call("RPCServer.GetPlayerList", false, &ret)
+	return ret, err
 }
 
 func (c *RPCClient) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {

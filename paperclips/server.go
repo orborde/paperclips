@@ -29,6 +29,14 @@ func (s *Server) NewPlayer(Name PlayerID) error {
 	return nil
 }
 
+func (s *Server) GetPlayerList() []PlayerID {
+	ret := make([]PlayerID, len(s.games))
+	for p := range s.games {
+		ret = append(ret, p)
+	}
+	return ret
+}
+
 func (s *Server) getNextBoardId() BoardID {
 	ret := BoardID(strconv.FormatUint(s.nextBoardId, 10))
 	s.nextBoardId++

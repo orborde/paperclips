@@ -30,6 +30,11 @@ func main() {
 			break
 		}
 	}
-
 	log.Println("My name is", name)
+
+	if names, err := client.GetPlayerList(); err != nil {
+		log.Fatal("Failed to fetch player list:", err)
+	} else {
+		log.Println("Players online are:", names)
+	}
 }
