@@ -32,7 +32,24 @@ func (b *Board) Apply(move *Move) error {
 		return errors.New(fmt.Sprint("Could not apply move ", move, ":", err.Error()))
 	}
 	b.PaperclipCount -= int(*move)
+
+	if b.GameOver() {
+		b.WinningPlayer = b.NextPlayer
+	}
+	
+	b.NextPlayer = (b.NextPlayer + 1) % len(b.Players)
 	return nil
+}
+
+func (b *Board) GameOver() bool {
+	return b.PaperclipCount == 0
+}
+
+func (b *Board) Winner() string {
+	if !b.GameOver() {
+		return ""
+	}
+	return b.Players[b.WinningPlayer]
 }
 
 func (m *Move) Valid() (bool, error) {

@@ -29,3 +29,31 @@ func TestMoveBounds(t *testing.T) {
 	ExpectInvalid(3)
 	ExpectInvalid(0)
 }
+
+func TestGamePlay(t *testing.T) {
+	TestMoveSequence := func(players []string, startCount int, moves []Move, expectedWinner string) {
+		var board Board
+		board.Players = players
+		board.PaperclipCount = startCount
+		Play := func(idx int, m *Move) {
+			prevPlayer := board.NextPlayer
+			if err := board.Apply(m); err != nil {
+				t.Error("Failed to apply move", idx, ":", m, ":", err.Error())
+			}
+			if board.NextPlayer == prevPlayer {
+				t.Error("Failed to advance player counter?!")
+			}
+		}
+
+		for i, m := range moves {
+			Play(i, &m)
+		}
+
+		if expectedWinner != "" && expectedWinner != board.Winner() {
+			t.Error("Expected", expectedWinner, "to win, but", board.Winner(), "won")
+		}
+	}
+	
+	TestMoveSequence([]string{"a", "b"}, 5,
+		[]Move{1, 2, 1, 1}, "b")
+}
