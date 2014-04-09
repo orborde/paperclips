@@ -2,6 +2,7 @@ package tictactoe
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -42,8 +43,8 @@ func (m *Board) Render() string {
 
 func (b *Board) Apply(move *Move) error {
 	if valid, err := Valid(move, b); !valid {
-		return errors.New("Could not apply move " + move + ": " + err.Error())
-	} 
+		return errors.New(fmt.Sprint("Could not apply move ", move, ":", err.Error()))
+	}
 	return nil
 }
 
