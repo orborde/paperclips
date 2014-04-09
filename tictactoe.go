@@ -40,6 +40,13 @@ func (m *Board) Render() string {
 	return strings.Join(lines, "-----")
 }
 
+func (b *Board) Apply(move *Move) error {
+	if valid, err := Valid(move, b); !valid {
+		return errors.New("Could not apply move " + move + ": " + err.Error())
+	} 
+	return nil
+}
+
 type Move struct {
 	x, y int
 	tile Tile
