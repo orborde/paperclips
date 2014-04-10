@@ -31,9 +31,9 @@ func TestMoveBounds(t *testing.T) {
 }
 
 func TestGamePlay(t *testing.T) {
-	TestMoveSequence := func(players []PlayerID, startCount int, moves []Move, expectedTurnSequence []PlayerID, expectedWinner PlayerID) {
-		board := NewBoard(PaperclipCount(startCount))
 
+	TestMoveSequence := func(players []PlayerID, startCount int,
+		moves []Move, expectedTurnSequence []PlayerID, expectedWinner PlayerID) {
 		moveCh := make(chan MoveMessage)
 		endCh := make(chan bool)
 		updateCh := make(chan BoardMessage)
@@ -50,6 +50,9 @@ func TestGamePlay(t *testing.T) {
 		Play := func(idx int, m *Move) {
 			prevPlayer := currentBoard.WhoseTurn
 			msg, err := runMove(m, currentBoard.WhoseTurn, currentBoard.TurnCount)
+			if err != nil {
+				t.Error("Failed to run move:", err)
+			}
 			currentBoard = *msg
 			if currentBoard.WhoseTurn == prevPlayer {
 				t.Error("Failed to advance player counter?!")
