@@ -95,5 +95,4 @@ func TestGamePlay(t *testing.T) {
 
 	TestMoveSequence([]PlayerID{"b", "a"}, 4,
 		[]Move{1, 1, 1, 1}, []PlayerID{"b", "a", "b", "a", "b"}, "a")
-
 }
