@@ -46,12 +46,18 @@ type BoardMessage struct {
 }
 
 func Play(Players []PlayerID, StartCounter PaperclipCount,
-	Moves <-chan MoveMessage, End <-chan bool) {
+	Moves <-chan MoveMessage, End <-chan bool, Updates chan<- BoardMessage) {
 	// Set up the initial game state.
 	currentPlayerIndex := 0
 	board := NewBoard(StartCounter)
 	// TODO: redundant with board counter
 	var turnCount TurnCount = 0
+
+	currentStatus := func() *BoardMessage {
+		return &BoardMessage{*board, Players[currentPlayerIndex], turnCount}
+	}
+
+	Updates <- *currentStatus()
 
 	applyMove := func(move *MoveMessage) {
 		if move.TurnCount < turnCount {
@@ -59,6 +65,8 @@ func Play(Players []PlayerID, StartCounter PaperclipCount,
 				nil, errors.New("Move discarded because it refers to an out of date board.")}
 			return
 		}
+
+		// TODO: check for correct player
 
 		err := board.Apply(&move.Move)
 		if err != nil {
@@ -70,7 +78,8 @@ func Play(Players []PlayerID, StartCounter PaperclipCount,
 		currentPlayerIndex++
 		currentPlayerIndex %= len(Players)
 
-		move.Result <- MoveResult{&BoardMessage{*board, Players[currentPlayerIndex], turnCount}, nil}
+		Updates <- *currentStatus()
+		move.Result <- MoveResult{currentStatus(), nil}
 	}
 
 	select {
