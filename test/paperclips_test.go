@@ -12,7 +12,7 @@ type RawGameAdapter struct {
 	firstUpdate *BoardMessage
 }
 
-func NewRawGameAdapter(players []PlayerID, startCount int) RawGameAdapter {
+func NewRawGameAdapter(players []PlayerID, startCount int) GameAdapter {
 	ret := RawGameAdapter{game: *NewGame(players, PaperclipCount(startCount)),
 		firstUpdate: nil}
 	tmp := <-ret.game.FirstUpdate
