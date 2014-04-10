@@ -6,7 +6,39 @@ import (
 	"strconv"
 )
 
-// TODO: make interface?
+// An implementation of a (fairly generic) server for turn-based games
+// like Tic-Tac-Toe, or, in this case, a much simpler game I call
+// Paperclips.
+//
+// The server's job is to act as a store of game states. Each game in
+// progress is represented by a Board object. A Board contains the
+// current game state (board state, whose turn it is, who is playing)
+// and is identified by a BoardID (a unique string identifier). There
+// are also Move objects, which can be submitted to the server to make
+// a move on a Board. When this happens, the Board is updated with the
+// new game state.
+//
+// Clients interact with the server via a polling RPC interface,
+// consisting of a couple of major methods:
+//
+// - GetGames(PlayerID) returns a list of games the player identified
+//   by PlayerID is currently participating in on the server.
+// - MakeMove(Board, Move) makes Move on Board, updating the server's
+//   game state.
+// - NewPlayer(PlayerID) registers a new Player as participating in
+//   the game server.
+// - NewGame(Players []PlayerID, GameOptions) creates a new game on
+//   the server between the listed Players.
+//
+// Clients will poll the GetGames interface periodically to receive a
+// list of active Boards; later, they will send MakeMove() RPCs back
+// to submit the user's moves on her Boards. The RPC interface is
+// designed to be friendly to a client that communicates with the
+// server entirely in the background so that the user never has to
+// wait for network round-trips while making moves; the client is
+// expected to store the downloaded list of active games and to queue
+// up the moves made for later delivery via MakeMove.
+
 type Server struct {
 	games       map[PlayerID]map[BoardID]*Board
 	nextBoardId uint64
