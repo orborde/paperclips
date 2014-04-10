@@ -113,7 +113,7 @@ func (s *Server) GetGames(P PlayerID) (map[BoardID]*BoardMessage, error) {
 	return s.boards[P], nil
 }
 
-func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
+func (s *Server) MakeMove(player PlayerID, board BoardID, move Move, turnCount TurnCount) error {
 	// Theoretically, we only need to RLock here since MakeMove
 	// dispatches a message and doesn't piddle with internal state.
 	s.directoryLock.Lock()
@@ -122,12 +122,23 @@ func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
 		return errors.New("Invalid player")
 	}
 
-	targetGame, boardExists := s.games[player][board]
-	if !boardExists {
-		return errors.New("Invalid board")
+	targetGame, gameExists := s.games[player][board]
+	if !gameExists {
+		return errors.New("Invalid game")
 	}
 
-	// TODO: Actually make a move!
+	// ...Except we want to update the board cache here, and manual
+	// locks is danger zone.
+	msg := MoveMessage{move, player, turnCount, make(chan MoveResult)}
+	targetGame.Moves <- msg
+	// Wait for the coroutine to reply
+	result := <-msg.Result
+	if result.error != nil {
+		return result.error
+	}
+
+	// Update the board cache
+	s.boards[player][board] = result.BoardMessage
 
 	return nil
 }
