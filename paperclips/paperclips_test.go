@@ -34,23 +34,24 @@ func TestGamePlay(t *testing.T) {
 	TestMoveSequence := func(players []PlayerID, startCount int, moves []Move, expectedTurnSequence []PlayerID, expectedWinner PlayerID) {
 		board := NewBoard(PaperclipCount(startCount))
 
-		moveChan := make(chan MoveMessage)
-		endChan := make(chan bool)
-		updateChan := make(chan BoardMessage)
+		moveCh := make(chan MoveMessage)
+		endCh := make(chan bool)
+		updateCh := make(chan BoardMessage)
+		go Play(players, PaperclipCount(startCount), moveCh, endCh, updateCh)
+		currentBoard := <-updateCh
 
 		runMove := func(m *Move, player PlayerID, turnCount TurnCount) (*BoardMessage, error) {
 			result := make(chan MoveResult)
-			moveChan <- MoveMessage{*m, player, turnCount, result}
+			moveCh <- MoveMessage{*m, player, turnCount, result}
 			msg := <-result
 			return msg.BoardMessage, msg.error
 		}
 
 		Play := func(idx int, m *Move) {
-			prevPlayer := board.CurrentPlayer()
-			if err := board.Apply(m); err != nil {
-				t.Error("Failed to apply move", idx, ":", m, ":", err.Error())
-			}
-			if board.CurrentPlayer() == prevPlayer {
+			prevPlayer := currentBoard.WhoseTurn
+			msg, err := runMove(m, currentBoard.WhoseTurn, currentBoard.TurnCount)
+			currentBoard = *msg
+			if currentBoard.WhoseTurn == prevPlayer {
 				t.Error("Failed to advance player counter?!")
 			}
 		}
@@ -70,13 +71,13 @@ func TestGamePlay(t *testing.T) {
 		turnSequence := []PlayerID{players[0]}
 		for i, m := range moves {
 			Play(i, &m)
-			turnSequence = append(turnSequence, board.CurrentPlayer())
+			turnSequence = append(turnSequence, currentBoard.WhoseTurn)
 		}
 
 		TestTurnSequence(expectedTurnSequence, turnSequence)
 
-		if expectedWinner != "" && expectedWinner != board.WinningPlayer() {
-			t.Error("Expected", expectedWinner, "to win, but", board.WinningPlayer(), "won")
+		if expectedWinner != "" && expectedWinner != *currentBoard.Winner {
+			t.Error("Expected", expectedWinner, "to win, but", *currentBoard.Winner, "won")
 		}
 	}
 
