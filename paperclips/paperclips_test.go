@@ -34,15 +34,14 @@ func TestGamePlay(t *testing.T) {
 
 	TestMoveSequence := func(players []PlayerID, startCount int,
 		moves []Move, expectedTurnSequence []PlayerID, expectedWinner PlayerID) {
-		moveCh := make(chan MoveMessage)
-		endCh := make(chan bool)
-		updateCh := make(chan BoardMessage)
-		go Play(players, PaperclipCount(startCount), moveCh, endCh, updateCh)
-		currentBoard := <-updateCh
+		game := NewGame(players, PaperclipCount(startCount))
+
+		// TODO: wrap this?
+		currentBoard := <-game.FirstUpdate
 
 		runMove := func(m *Move, player PlayerID, turnCount TurnCount) (*BoardMessage, error) {
 			result := make(chan MoveResult)
-			moveCh <- MoveMessage{*m, player, turnCount, result}
+			game.Moves <- MoveMessage{*m, player, turnCount, result}
 			msg := <-result
 			return msg.BoardMessage, msg.error
 		}

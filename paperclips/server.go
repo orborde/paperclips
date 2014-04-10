@@ -1,9 +1,9 @@
 package paperclips
 
 import (
-	"errors"
-	"fmt"
-	"strconv"
+//"errors"
+//"fmt"
+//"strconv"
 )
 
 // An implementation of a (fairly generic) server for turn-based games
@@ -40,14 +40,19 @@ import (
 // up the moves made for later delivery via MakeMove.
 
 type Server struct {
-	games       map[PlayerID]map[BoardID]*Board
-	nextBoardId uint64
+	End chan bool
 }
 
 func NewServer() *Server {
-	return &Server{make(map[PlayerID]map[BoardID]*Board), 0}
+	return &Server{make(chan bool)}
 }
 
+func (s *Server) Run() {
+	//	games := make(map[PlayerID]map[BoardID]*Game)
+
+}
+
+/*
 func (s *Server) PlayerExists(P PlayerID) bool {
 	_, ret := s.games[P]
 	return ret
@@ -85,11 +90,11 @@ func (s *Server) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
 		}
 	}
 
-	/*board := NewBoard(Players, StartCount, s.getNextBoardId())
+	board := NewBoard(Players, StartCount, s.getNextBoardId())
 	ID := board.ID
 	for _, p := range Players {
 		s.games[p][ID] = board
-	}*/
+	}
 	return "", nil
 }
 
@@ -114,5 +119,8 @@ func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
 		return errors.New("Invalid move: " + err.Error())
 	}
 
+	// TODO: Actually make a move!
+
 	return nil
 }
+*/

@@ -46,8 +46,23 @@ type BoardMessage struct {
 	TurnCount TurnCount
 }
 
-func Play(Players []PlayerID, StartCounter PaperclipCount,
-	Moves <-chan MoveMessage, End <-chan bool, FirstUpdate chan<- BoardMessage) {
+type Game struct {
+	Moves       chan MoveMessage
+	end         chan bool
+	FirstUpdate chan BoardMessage
+}
+
+func NewGame(Players []PlayerID, StartCounter PaperclipCount) *Game {
+	ret := &Game{make(chan MoveMessage), make(chan bool), make(chan BoardMessage)}
+	go ret.Play(Players, StartCounter)
+	return ret
+}
+
+func (g *Game) End() {
+	g.end <- true
+}
+
+func (g *Game) Play(Players []PlayerID, StartCounter PaperclipCount) {
 	// Set up the initial game state.
 	currentPlayerIndex := 0
 	board := NewBoard(StartCounter)
@@ -87,14 +102,16 @@ func Play(Players []PlayerID, StartCounter PaperclipCount,
 		move.Result <- MoveResult{currentStatus(), nil}
 	}
 
-	FirstUpdate <- *currentStatus()
-	close(FirstUpdate)
+	g.FirstUpdate <- *currentStatus()
+	close(g.FirstUpdate)
 
+	defer close(g.end)
+	defer close(g.Moves)
 	for {
 		select {
-		case <-End:
+		case <-g.end:
 			return
-		case move := <-Moves:
+		case move := <-g.Moves:
 			applyMove(&move)
 		}
 	}
