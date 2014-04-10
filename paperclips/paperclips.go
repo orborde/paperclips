@@ -61,9 +61,6 @@ func Play(Players []PlayerID, StartCounter PaperclipCount,
 	currentStatus := func() *BoardMessage {
 		return &BoardMessage{*board, *currentPlayer(), winner, turnCount}
 	}
-
-	Updates <- *currentStatus()
-
 	applyMove := func(move *MoveMessage) {
 		if move.TurnCount < turnCount {
 			move.Result <- MoveResult{
@@ -81,21 +78,25 @@ func Play(Players []PlayerID, StartCounter PaperclipCount,
 		}
 
 		turnCount++
-		currentPlayerIndex++
-		currentPlayerIndex %= len(Players)
 		if board.GameOver() {
 			winner = currentPlayer()
 		}
+		currentPlayerIndex++
+		currentPlayerIndex %= len(Players)
 
 		Updates <- *currentStatus()
 		move.Result <- MoveResult{currentStatus(), nil}
 	}
 
-	select {
-	case <-End:
-		return
-	case move := <-Moves:
-		applyMove(&move)
+	Updates <- *currentStatus()
+
+	for {
+		select {
+		case <-End:
+			return
+		case move := <-Moves:
+			applyMove(&move)
+		}
 	}
 }
 
