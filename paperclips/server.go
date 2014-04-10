@@ -1,9 +1,10 @@
 package paperclips
 
 import (
-//"errors"
-//"fmt"
-//"strconv"
+	"errors"
+	"fmt"
+	"strconv"
+	"sync"
 )
 
 // An implementation of a (fairly generic) server for turn-based games
@@ -40,33 +41,36 @@ import (
 // up the moves made for later delivery via MakeMove.
 
 type Server struct {
-	End chan bool
+	directoryLock sync.RWMutex
+	games         map[PlayerID]map[BoardID]*Game
+	boards        map[PlayerID]map[BoardID]*BoardMessage
+	nextBoardId   uint64
 }
 
 func NewServer() *Server {
-	return &Server{make(chan bool)}
+	return &Server{games: make(map[PlayerID]map[BoardID]*Game)}
 }
 
-func (s *Server) Run() {
-	//	games := make(map[PlayerID]map[BoardID]*Game)
-
-}
-
-/*
 func (s *Server) PlayerExists(P PlayerID) bool {
+	s.directoryLock.RLock()
+	defer s.directoryLock.RUnlock()
 	_, ret := s.games[P]
 	return ret
 }
 
 func (s *Server) NewPlayer(Name PlayerID) error {
+	s.directoryLock.Lock()
+	defer s.directoryLock.Unlock()
 	if s.PlayerExists(Name) {
 		return errors.New("Player " + string(Name) + " already exists on server")
 	}
-	s.games[Name] = make(map[BoardID]*Board)
+	s.games[Name] = make(map[BoardID]*Game)
 	return nil
 }
 
 func (s *Server) GetPlayerList() []PlayerID {
+	s.directoryLock.RLock()
+	defer s.directoryLock.RUnlock()
 	ret := make([]PlayerID, len(s.games))
 	for p := range s.games {
 		ret = append(ret, p)
@@ -81,6 +85,8 @@ func (s *Server) getNextBoardId() BoardID {
 }
 
 func (s *Server) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
+	s.directoryLock.Lock()
+	defer s.directoryLock.Unlock()
 	for _, p := range Players {
 		if !s.PlayerExists(p) {
 			//return errors.New("Player " + string(p) + " does not exist on server")
@@ -90,27 +96,33 @@ func (s *Server) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
 		}
 	}
 
-	board := NewBoard(Players, StartCount, s.getNextBoardId())
-	ID := board.ID
+	game := NewGame(Players, PaperclipCount(StartCount))
+	ID := s.getNextBoardId()
 	for _, p := range Players {
-		s.games[p][ID] = board
+		s.games[p][ID] = game
 	}
 	return "", nil
 }
 
-func (s *Server) GetGames(P PlayerID) (map[BoardID]*Board, error) {
+func (s *Server) GetGames(P PlayerID) (map[BoardID]*BoardMessage, error) {
+	s.directoryLock.RLock()
+	defer s.directoryLock.RUnlock()
 	if !s.PlayerExists(P) {
 		return nil, errors.New(fmt.Sprint("Player", P, "does not exist."))
 	}
-	return s.games[P], nil
+	return s.boards[P], nil
 }
 
 func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
+	// Theoretically, we only need to RLock here since MakeMove
+	// dispatches a message and doesn't piddle with internal state.
+	s.directoryLock.Lock()
+	defer s.directoryLock.Unlock()
 	if !s.PlayerExists(player) {
 		return errors.New("Invalid player")
 	}
 
-	targetBoard, boardExists := s.games[player][board]
+	targetGame, boardExists := s.games[player][board]
 	if !boardExists {
 		return errors.New("Invalid board")
 	}
@@ -119,4 +131,3 @@ func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
 
 	return nil
 }
-*/
