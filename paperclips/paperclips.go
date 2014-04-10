@@ -47,7 +47,7 @@ type BoardMessage struct {
 }
 
 func Play(Players []PlayerID, StartCounter PaperclipCount,
-	Moves <-chan MoveMessage, End <-chan bool, Updates chan<- BoardMessage) {
+	Moves <-chan MoveMessage, End <-chan bool, FirstUpdate chan<- BoardMessage) {
 	// Set up the initial game state.
 	currentPlayerIndex := 0
 	board := NewBoard(StartCounter)
@@ -84,11 +84,11 @@ func Play(Players []PlayerID, StartCounter PaperclipCount,
 		currentPlayerIndex++
 		currentPlayerIndex %= len(Players)
 
-		Updates <- *currentStatus()
 		move.Result <- MoveResult{currentStatus(), nil}
 	}
 
-	Updates <- *currentStatus()
+	FirstUpdate <- *currentStatus()
+	close(FirstUpdate)
 
 	for {
 		select {
