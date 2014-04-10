@@ -42,6 +42,7 @@ type MoveMessage struct {
 type BoardMessage struct {
 	Board     Board
 	WhoseTurn PlayerID
+	Winner    *PlayerID
 	TurnCount TurnCount
 }
 
@@ -52,9 +53,13 @@ func Play(Players []PlayerID, StartCounter PaperclipCount,
 	board := NewBoard(StartCounter)
 	// TODO: redundant with board counter
 	var turnCount TurnCount = 0
+	var winner *PlayerID = nil
 
+	currentPlayer := func() *PlayerID {
+		return &Players[currentPlayerIndex]
+	}
 	currentStatus := func() *BoardMessage {
-		return &BoardMessage{*board, Players[currentPlayerIndex], turnCount}
+		return &BoardMessage{*board, *currentPlayer(), winner, turnCount}
 	}
 
 	Updates <- *currentStatus()
@@ -67,6 +72,7 @@ func Play(Players []PlayerID, StartCounter PaperclipCount,
 		}
 
 		// TODO: check for correct player
+		// TODO: check for gameover invalidating move?
 
 		err := board.Apply(&move.Move)
 		if err != nil {
@@ -77,6 +83,9 @@ func Play(Players []PlayerID, StartCounter PaperclipCount,
 		turnCount++
 		currentPlayerIndex++
 		currentPlayerIndex %= len(Players)
+		if board.GameOver() {
+			winner = currentPlayer()
+		}
 
 		Updates <- *currentStatus()
 		move.Result <- MoveResult{currentStatus(), nil}
