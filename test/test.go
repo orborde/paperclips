@@ -1,28 +1,24 @@
 package test
 
 import "testing"
+import . "paperclips/paperclips"
 
-//type Adapter interface {
+type GameAdapter interface {
+	// TODO: need an init function, or can we rely on a constructor?
+	FirstUpdate() BoardMessage
+	RunMove(m *Move, p PlayerID, tc TurnCount) (*BoardMessage, error)
+}
 
-func TestGamePlay(t *testing.T) {
+func TestGamePlay(t *testing.T, Adapter GameAdapter) {
 
 	TestMoveSequence := func(players []PlayerID, startCount int,
 		moves []Move, expectedTurnSequence []PlayerID, expectedWinner PlayerID) {
-		game := NewGame(players, PaperclipCount(startCount))
-
 		// TODO: wrap this?
-		currentBoard := <-game.FirstUpdate
-
-		runMove := func(m *Move, player PlayerID, turnCount TurnCount) (*BoardMessage, error) {
-			result := make(chan MoveResult)
-			game.Moves <- MoveMessage{*m, player, turnCount, result}
-			msg := <-result
-			return msg.BoardMessage, msg.error
-		}
+		currentBoard := Adapter.FirstUpdate()
 
 		Play := func(idx int, m *Move) {
 			prevPlayer := currentBoard.WhoseTurn
-			msg, err := runMove(m, currentBoard.WhoseTurn, currentBoard.TurnCount)
+			msg, err := Adapter.RunMove(m, currentBoard.WhoseTurn, currentBoard.TurnCount)
 			if err != nil {
 				t.Error("Failed to run move:", err)
 			}
