@@ -1,20 +1,18 @@
-package paperclips
+package test
 
-import (
-	"testing"
+import "testing"
 
-	"paperclips/test"
-)
+import . "paperclips/paperclips"
 
 type RawGameAdapter struct {
-	paperclips.GameAdapter
 	game        Game
 	firstUpdate *BoardMessage
 }
 
-func NewRawGameAdapter() *RawGameAdapter {
-	ret := &RawGameAdapter{NewGame(players, PaperclipCount(startCount)), nil}
-	firstUpdate <- ret.game.FirstUpdate
+func NewRawGameAdapter(players []PlayerID, startCount int) *RawGameAdapter {
+	ret := &RawGameAdapter{*NewGame(players, PaperclipCount(startCount)), nil}
+	tmp := <-ret.game.FirstUpdate
+	ret.firstUpdate = &tmp
 	return ret
 }
 
@@ -24,9 +22,9 @@ func (a *RawGameAdapter) FirstUpdate() BoardMessage {
 
 func (a *RawGameAdapter) RunMove(m *Move, p PlayerID, tc TurnCount) (*BoardMessage, error) {
 	result := make(chan MoveResult)
-	a.game.Moves <- MoveMessage{*m, player, turnCount, result}
+	a.game.Moves <- MoveMessage{*m, p, tc, result}
 	msg := <-result
-	return msg.BoardMessage, msg.error
+	return msg.BoardMessage, msg.Error
 }
 
 func TestRender(t *testing.T) {

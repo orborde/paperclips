@@ -133,8 +133,8 @@ func (s *Server) MakeMove(player PlayerID, board BoardID, move Move, turnCount T
 	targetGame.Moves <- msg
 	// Wait for the coroutine to reply
 	result := <-msg.Result
-	if result.error != nil {
-		return result.error
+	if result.Error != nil {
+		return result.Error
 	}
 
 	// Update the board cache

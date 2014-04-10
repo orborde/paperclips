@@ -24,7 +24,7 @@ type Board struct {
 
 type MoveResult struct {
 	*BoardMessage
-	error
+	Error error
 }
 
 type MoveMessage struct {
