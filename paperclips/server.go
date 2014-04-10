@@ -115,10 +115,6 @@ func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
 		return errors.New("Invalid board")
 	}
 
-	if valid, err := Valid(&move, targetBoard); !valid {
-		return errors.New("Invalid move: " + err.Error())
-	}
-
 	// TODO: Actually make a move!
 
 	return nil
