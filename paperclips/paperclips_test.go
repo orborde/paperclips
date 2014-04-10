@@ -43,7 +43,6 @@ func TestGamePlay(t *testing.T) {
 		runMove := func(m *Move, player PlayerID, turnCount TurnCount) (*BoardMessage, error) {
 			result := make(chan MoveResult)
 			moveCh <- MoveMessage{*m, player, turnCount, result}
-			// TODO: Figure out how to not need to poll both upgrade and result
 			msg := <-result
 			return msg.BoardMessage, msg.error
 		}
