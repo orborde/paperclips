@@ -4,23 +4,30 @@ import "testing"
 
 import . "paperclips/paperclips"
 
+import "log"
+
 type RawGameAdapter struct {
+	GameAdapter
 	game        Game
 	firstUpdate *BoardMessage
 }
 
-func NewRawGameAdapter(players []PlayerID, startCount int) *RawGameAdapter {
-	ret := &RawGameAdapter{*NewGame(players, PaperclipCount(startCount)), nil}
+func NewRawGameAdapter(players []PlayerID, startCount int) RawGameAdapter {
+	ret := RawGameAdapter{game: *NewGame(players, PaperclipCount(startCount)),
+		firstUpdate: nil}
 	tmp := <-ret.game.FirstUpdate
 	ret.firstUpdate = &tmp
 	return ret
 }
 
-func (a *RawGameAdapter) FirstUpdate() BoardMessage {
-	return *a.firstUpdate
+func (a RawGameAdapter) FirstUpdate() BoardMessage {
+	if a.firstUpdate == nil {
+		log.Fatal("IS NIL")
+	}
+	return *(a.firstUpdate)
 }
 
-func (a *RawGameAdapter) RunMove(m *Move, p PlayerID, tc TurnCount) (*BoardMessage, error) {
+func (a RawGameAdapter) RunMove(m *Move, p PlayerID, tc TurnCount) (*BoardMessage, error) {
 	result := make(chan MoveResult)
 	a.game.Moves <- MoveMessage{*m, p, tc, result}
 	msg := <-result
@@ -53,4 +60,8 @@ func TestMoveBounds(t *testing.T) {
 	ExpectValid(TakeTwo)
 	ExpectInvalid(3)
 	ExpectInvalid(0)
+}
+
+func TestFoo(t *testing.T) {
+	TestGamePlay(t, NewRawGameAdapter)
 }

@@ -4,15 +4,16 @@ import "testing"
 import . "paperclips/paperclips"
 
 type GameAdapter interface {
-	// TODO: need an init function, or can we rely on a constructor?
 	FirstUpdate() BoardMessage
 	RunMove(m *Move, p PlayerID, tc TurnCount) (*BoardMessage, error)
 }
 
-func TestGamePlay(t *testing.T, Adapter GameAdapter) {
+func TestGamePlay(t *testing.T,
+	AdapterFactory func(players []PlayerID, startCount int) GameAdapter) {
 
 	TestMoveSequence := func(players []PlayerID, startCount int,
 		moves []Move, expectedTurnSequence []PlayerID, expectedWinner PlayerID) {
+		Adapter := AdapterFactory(players, startCount)
 		// TODO: wrap this?
 		currentBoard := Adapter.FirstUpdate()
 
