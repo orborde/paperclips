@@ -32,7 +32,19 @@ func TestMoveBounds(t *testing.T) {
 
 func TestGamePlay(t *testing.T) {
 	TestMoveSequence := func(players []PlayerID, startCount int, moves []Move, expectedTurnSequence []PlayerID, expectedWinner PlayerID) {
-		board := NewBoard(players, startCount, "TestGame")
+		board := NewBoard(PaperclipCount(startCount))
+
+		moveChan := make(chan MoveMessage)
+		endChan := make(chan bool)
+		updateChan := make(chan BoardMessage)
+
+		runMove := func(m *Move, player PlayerID, turnCount TurnCount) (*BoardMessage, error) {
+			result := make(chan MoveResult)
+			moveChan <- MoveMessage{*m, player, turnCount, result}
+			msg := <-result
+			return msg.BoardMessage, msg.error
+		}
+
 		Play := func(idx int, m *Move) {
 			prevPlayer := board.CurrentPlayer()
 			if err := board.Apply(m); err != nil {
