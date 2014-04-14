@@ -1,20 +1,20 @@
 package test
 
-import "testing"
+import (
+	"fmt"
+	"log"
+	"testing"
+)
 
 import . "paperclips/paperclips"
 
-import "log"
-
 type ServerGameAdapter struct {
-	GameAdapter
-	server      Server
-	board       BoardID
-	firstUpdate *BoardMessage
+	server Server
+	board  BoardID
 }
 
 func NewServerGameAdapter(players []PlayerID, startCount int) GameAdapter {
-	ret := ServerGameAdapter{server: *NewServer()}
+	ret := &ServerGameAdapter{server: *NewServer()}
 
 	// Set up players on server
 	for _, p := range players {
@@ -35,21 +35,7 @@ func NewServerGameAdapter(players []PlayerID, startCount int) GameAdapter {
 	return ret
 }
 
-func (a ServerGameAdapter) FirstUpdate() BoardMessage {
-	if a.firstUpdate == nil {
-		log.Fatal("IS NIL")
-	}
-	return *(a.firstUpdate)
-}
-
-func (a ServerGameAdapter) RunMove(m *Move, p PlayerID, tc TurnCount) (*BoardMessage, error) {
-	result := make(chan MoveResult)
-	a.game.Moves <- MoveMessage{*m, p, tc, result}
-	msg := <-result
-	return msg.BoardMessage, msg.Error
-}
-
-func (a ServerGameAdapter) GetGame() (ID BoardID) {
+func (a *ServerGameAdapter) BoardState() (board *Board) {
 	// Fetch the players list.
 	players := a.server.GetPlayerList()
 
@@ -57,15 +43,16 @@ func (a ServerGameAdapter) GetGame() (ID BoardID) {
 	p := players[0]
 	games, err := a.server.GetGames(p)
 	if err != nil {
-		panic("Server failed to give back games!")
+		panic(fmt.Sprint("Server failed to give back games:", err))
 	}
 
 	// It should be the only game in the list.
-	for _, boardID := range games {
-		ID = boardID
-		break
-	}
-	return ID
+	return games[a.board]
+}
+
+func (a *ServerGameAdapter) RunMove(m *Move, p PlayerID) (*Board, error) {
+	err := a.server.MakeMove(p, a.board, *m)
+	return a.BoardState(), err
 }
 
 func TestServer(t *testing.T) {

@@ -62,7 +62,7 @@ func (s *Server) NewPlayer(Name PlayerID) error {
 }
 
 func (s *Server) GetPlayerList() []PlayerID {
-	ret := make([]PlayerID, len(s.games))
+	ret := make([]PlayerID, 0)
 	for p := range s.games {
 		ret = append(ret, p)
 	}
@@ -114,5 +114,5 @@ func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
 		return errors.New("Invalid move: " + err.Error())
 	}
 
-	return nil
+	return targetBoard.Apply(&move)
 }
