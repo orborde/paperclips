@@ -7,7 +7,6 @@ import . "paperclips/paperclips"
 import "log"
 
 type RawGameAdapter struct {
-	GameAdapter
 	game        Game
 	firstUpdate *BoardMessage
 }
