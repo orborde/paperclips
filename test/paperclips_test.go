@@ -9,14 +9,14 @@ type RawGameAdapter struct {
 }
 
 func NewRawGameAdapter(players []PlayerID, startCount int) GameAdapter {
-	return RawGameAdapter{*NewBoard(players, startCount)}
+	return &RawGameAdapter{*NewBoard(players, startCount)}
 }
 
-func (a RawGameAdapter) BoardState() *Board {
+func (a *RawGameAdapter) BoardState() *Board {
 	return &a.game
 }
 
-func (a RawGameAdapter) RunMove(m *Move, p PlayerID) (*Board, error) {
+func (a *RawGameAdapter) RunMove(m *Move, p PlayerID) (*Board, error) {
 	// TODO: What about wrong player?
 	err := a.game.Apply(m)
 	return &a.game, err
