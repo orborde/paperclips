@@ -85,8 +85,8 @@ func (s *Server) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
 		}
 	}
 
-	board := NewBoard(Players, StartCount, s.getNextBoardId())
-	ID := board.ID
+	board := NewBoard(Players, StartCount)
+	ID := s.getNextBoardId()
 	for _, p := range Players {
 		s.games[p][ID] = board
 	}

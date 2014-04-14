@@ -4,8 +4,8 @@ import "testing"
 import . "paperclips/paperclips"
 
 type GameAdapter interface {
-	BoardState() Board
-	RunMove(m *Move, p PlayerID, tc TurnCount) (*BoardMessage, error)
+	BoardState() *Board
+	RunMove(m *Move, p PlayerID) (*Board, error)
 }
 
 func TestGamePlay(t *testing.T,
@@ -14,17 +14,16 @@ func TestGamePlay(t *testing.T,
 	TestMoveSequence := func(players []PlayerID, startCount int,
 		moves []Move, expectedTurnSequence []PlayerID, expectedWinner PlayerID) {
 		Adapter := AdapterFactory(players, startCount)
-		// TODO: wrap this?
-		currentBoard := Adapter.FirstUpdate()
+		currentBoard := Adapter.BoardState()
 
 		Play := func(idx int, m *Move) {
-			prevPlayer := currentBoard.WhoseTurn
-			msg, err := Adapter.RunMove(m, currentBoard.WhoseTurn, currentBoard.TurnCount)
+			prevPlayer := currentBoard.CurrentPlayer()
+			board, err := Adapter.RunMove(m, currentBoard.CurrentPlayer())
 			if err != nil {
 				t.Error("Failed to run move:", err)
 			}
-			currentBoard = *msg
-			if currentBoard.WhoseTurn == prevPlayer {
+			currentBoard = board
+			if currentBoard.CurrentPlayer() == prevPlayer {
 				t.Error("Failed to advance player counter?!")
 			}
 		}
@@ -44,13 +43,13 @@ func TestGamePlay(t *testing.T,
 		turnSequence := []PlayerID{players[0]}
 		for i, m := range moves {
 			Play(i, &m)
-			turnSequence = append(turnSequence, currentBoard.WhoseTurn)
+			turnSequence = append(turnSequence, currentBoard.CurrentPlayer())
 		}
 
 		TestTurnSequence(expectedTurnSequence, turnSequence)
 
-		if expectedWinner != "" && expectedWinner != *currentBoard.Winner {
-			t.Error("Expected", expectedWinner, "to win, but", *currentBoard.Winner, "won")
+		if expectedWinner != "" && expectedWinner != currentBoard.WinningPlayer {
+			t.Error("Expected", expectedWinner, "to win, but", currentBoard.WinningPlayer, "won")
 		}
 	}
 

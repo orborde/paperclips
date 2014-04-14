@@ -20,13 +20,12 @@ type Board struct {
 	PaperclipCount     int
 	Players            []PlayerID
 	currentPlayerIndex int
-	WinningPlayer      Player
+	WinningPlayer      PlayerID
 	// TODO: Move history?
-	ID BoardID
 }
 
-func NewBoard(Players []PlayerID, StartCount int, Id BoardID) *Board {
-	return &Board{PaperclipCount: StartCount, Players: Players, ID: Id}
+func NewBoard(Players []PlayerID, StartCount int) *Board {
+	return &Board{PaperclipCount: StartCount, Players: Players}
 }
 
 func (b *Board) Render() string {
@@ -53,13 +52,6 @@ func (b *Board) GameOver() bool {
 
 func (b *Board) CurrentPlayer() PlayerID {
 	return b.Players[b.currentPlayerIndex]
-}
-
-func (b *Board) WinningPlayer() PlayerID {
-	if !b.GameOver() {
-		return ""
-	}
-	return b.WinningPlayer
 }
 
 func (m *Move) Valid() (bool, error) {
