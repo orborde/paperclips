@@ -6,62 +6,68 @@ import . "paperclips/paperclips"
 
 import "log"
 
-type RawGameAdapter struct {
+type ServerGameAdapter struct {
 	GameAdapter
-	game        Game
+	server      Server
+	board       BoardID
 	firstUpdate *BoardMessage
 }
 
-func NewRawGameAdapter(players []PlayerID, startCount int) GameAdapter {
-	ret := RawGameAdapter{game: *NewGame(players, PaperclipCount(startCount)),
-		firstUpdate: nil}
-	tmp := <-ret.game.FirstUpdate
-	ret.firstUpdate = &tmp
+func NewServerGameAdapter(players []PlayerID, startCount int) GameAdapter {
+	ret := ServerGameAdapter{server: *NewServer()}
+
+	// Set up players on server
+	for _, p := range players {
+		if err := ret.server.NewPlayer(p); err != nil {
+			log.Fatal("Failed to create players:", err)
+		}
+	}
+
+	// Create a game among the players
+	{
+		var err error
+		ret.board, err = ret.server.NewGame(players, startCount)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	return ret
 }
 
-func (a RawGameAdapter) FirstUpdate() BoardMessage {
+func (a ServerGameAdapter) FirstUpdate() BoardMessage {
 	if a.firstUpdate == nil {
 		log.Fatal("IS NIL")
 	}
 	return *(a.firstUpdate)
 }
 
-func (a RawGameAdapter) RunMove(m *Move, p PlayerID, tc TurnCount) (*BoardMessage, error) {
+func (a ServerGameAdapter) RunMove(m *Move, p PlayerID, tc TurnCount) (*BoardMessage, error) {
 	result := make(chan MoveResult)
 	a.game.Moves <- MoveMessage{*m, p, tc, result}
 	msg := <-result
 	return msg.BoardMessage, msg.Error
 }
 
-func TestRender(t *testing.T) {
-	var data Board
-	data.PaperclipCount = 6
-	if data.Render() != "6" {
-		t.Errorf("Failed to properly render board!")
+func (a ServerGameAdapter) GetGame() (ID BoardID) {
+	// Fetch the players list.
+	players := a.server.GetPlayerList()
+
+	// Grab a player off it and fetch his games.
+	p := players[0]
+	games, err := a.server.GetGames(p)
+	if err != nil {
+		panic("Server failed to give back games!")
 	}
+
+	// It should be the only game in the list.
+	for _, boardID := range games {
+		ID = boardID
+		break
+	}
+	return ID
 }
 
-func TestMoveBounds(t *testing.T) {
-	ExpectValid := func(m Move) {
-		if val, err := m.Valid(); !val || !(err == nil) {
-			t.Error(err)
-			t.Error("Move", m, "was supposed to be valid!")
-		}
-	}
-	ExpectInvalid := func(m Move) {
-		if val, err := m.Valid(); val || (err == nil) {
-			t.Error(err)
-			t.Error("Move", m, "was supposed to be invalid!")
-		}
-	}
-
-	ExpectValid(TakeOne)
-	ExpectValid(TakeTwo)
-	ExpectInvalid(3)
-	ExpectInvalid(0)
-}
-
-func TestFoo(t *testing.T) {
-	TestGamePlay(t, NewRawGameAdapter)
+func TestServer(t *testing.T) {
+	TestGamePlay(t, NewServerGameAdapter)
 }
