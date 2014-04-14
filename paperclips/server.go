@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"sync"
 )
 
 // An implementation of a (fairly generic) server for turn-based games
@@ -41,36 +40,28 @@ import (
 // up the moves made for later delivery via MakeMove.
 
 type Server struct {
-	directoryLock sync.RWMutex
-	games         map[PlayerID]map[BoardID]*Game
-	boards        map[PlayerID]map[BoardID]*BoardMessage
-	nextBoardId   uint64
+	games       map[PlayerID]map[BoardID]*Board
+	nextBoardId uint64
 }
 
 func NewServer() *Server {
-	return &Server{games: make(map[PlayerID]map[BoardID]*Game)}
+	return &Server{make(map[PlayerID]map[BoardID]*Board), 0}
 }
 
 func (s *Server) PlayerExists(P PlayerID) bool {
-	s.directoryLock.RLock()
-	defer s.directoryLock.RUnlock()
 	_, ret := s.games[P]
 	return ret
 }
 
 func (s *Server) NewPlayer(Name PlayerID) error {
-	s.directoryLock.Lock()
-	defer s.directoryLock.Unlock()
 	if s.PlayerExists(Name) {
 		return errors.New("Player " + string(Name) + " already exists on server")
 	}
-	s.games[Name] = make(map[BoardID]*Game)
+	s.games[Name] = make(map[BoardID]*Board)
 	return nil
 }
 
 func (s *Server) GetPlayerList() []PlayerID {
-	s.directoryLock.RLock()
-	defer s.directoryLock.RUnlock()
 	ret := make([]PlayerID, len(s.games))
 	for p := range s.games {
 		ret = append(ret, p)
@@ -85,8 +76,6 @@ func (s *Server) getNextBoardId() BoardID {
 }
 
 func (s *Server) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
-	s.directoryLock.Lock()
-	defer s.directoryLock.Unlock()
 	for _, p := range Players {
 		if !s.PlayerExists(p) {
 			//return errors.New("Player " + string(p) + " does not exist on server")
@@ -96,49 +85,34 @@ func (s *Server) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
 		}
 	}
 
-	game := NewGame(Players, PaperclipCount(StartCount))
-	ID := s.getNextBoardId()
+	board := NewBoard(Players, StartCount, s.getNextBoardId())
+	ID := board.ID
 	for _, p := range Players {
-		s.games[p][ID] = game
+		s.games[p][ID] = board
 	}
-	return "", nil
+	return ID, nil
 }
 
-func (s *Server) GetGames(P PlayerID) (map[BoardID]*BoardMessage, error) {
-	s.directoryLock.RLock()
-	defer s.directoryLock.RUnlock()
+func (s *Server) GetGames(P PlayerID) (map[BoardID]*Board, error) {
 	if !s.PlayerExists(P) {
 		return nil, errors.New(fmt.Sprint("Player", P, "does not exist."))
 	}
-	return s.boards[P], nil
+	return s.games[P], nil
 }
 
-func (s *Server) MakeMove(player PlayerID, board BoardID, move Move, turnCount TurnCount) error {
-	// Theoretically, we only need to RLock here since MakeMove
-	// dispatches a message and doesn't piddle with internal state.
-	s.directoryLock.Lock()
-	defer s.directoryLock.Unlock()
+func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
 	if !s.PlayerExists(player) {
 		return errors.New("Invalid player")
 	}
 
-	targetGame, gameExists := s.games[player][board]
-	if !gameExists {
-		return errors.New("Invalid game")
+	targetBoard, boardExists := s.games[player][board]
+	if !boardExists {
+		return errors.New("Invalid board")
 	}
 
-	// ...Except we want to update the board cache here, and manual
-	// locks is danger zone.
-	msg := MoveMessage{move, player, turnCount, make(chan MoveResult)}
-	targetGame.Moves <- msg
-	// Wait for the coroutine to reply
-	result := <-msg.Result
-	if result.Error != nil {
-		return result.Error
+	if valid, err := Valid(&move, targetBoard); !valid {
+		return errors.New("Invalid move: " + err.Error())
 	}
-
-	// Update the board cache
-	s.boards[player][board] = result.BoardMessage
 
 	return nil
 }

@@ -6,8 +6,7 @@ import (
 	"strconv"
 )
 
-type PaperclipCount int
-type Move PaperclipCount
+type Move int
 
 const (
 	TakeOne Move = 1
@@ -16,126 +15,51 @@ const (
 
 type PlayerID string
 type BoardID string
-type TurnCount int
 
 type Board struct {
-	PaperclipCount PaperclipCount
+	PaperclipCount     int
+	Players            []PlayerID
+	currentPlayerIndex int
+	WinningPlayer      Player
+	// TODO: Move history?
+	ID BoardID
 }
 
-type MoveResult struct {
-	*BoardMessage
-	Error error
-}
-
-type MoveMessage struct {
-	Move Move
-	// TODO: Do we need this for verification?
-	// TODO: How do we communicate errors? I suppose we can just crash out for now...
-	Player PlayerID
-	// Turn at which this Move was issued. It might get dropped on the
-	// floor if it's too old.
-	TurnCount TurnCount
-	// Channel to signal back the move results
-	Result chan MoveResult
-}
-
-type BoardMessage struct {
-	Board     Board
-	WhoseTurn PlayerID
-	Winner    *PlayerID
-	TurnCount TurnCount
-}
-
-type Game struct {
-	Moves       chan MoveMessage
-	end         chan bool
-	FirstUpdate chan BoardMessage
-}
-
-func NewGame(Players []PlayerID, StartCounter PaperclipCount) *Game {
-	ret := &Game{make(chan MoveMessage), make(chan bool), make(chan BoardMessage)}
-	go ret.Play(Players, StartCounter)
-	return ret
-}
-
-func (g *Game) End() {
-	g.end <- true
-}
-
-func (g *Game) Play(Players []PlayerID, StartCounter PaperclipCount) {
-	// Set up the initial game state.
-	currentPlayerIndex := 0
-	board := NewBoard(StartCounter)
-	// TODO: redundant with board counter
-	var turnCount TurnCount = 0
-	var winner *PlayerID = nil
-
-	currentPlayer := func() *PlayerID {
-		return &Players[currentPlayerIndex]
-	}
-	currentStatus := func() *BoardMessage {
-		return &BoardMessage{*board, *currentPlayer(), winner, turnCount}
-	}
-	applyMove := func(move *MoveMessage) {
-		if move.TurnCount < turnCount {
-			move.Result <- MoveResult{
-				nil, errors.New("Move discarded because it refers to an out of date board.")}
-			return
-		}
-
-		// TODO: check for correct player
-		// TODO: check for gameover invalidating move?
-
-		err := board.Apply(&move.Move)
-		if err != nil {
-			move.Result <- MoveResult{nil, errors.New(fmt.Sprint("Move rejected as invalid: ", err))}
-			return
-		}
-
-		turnCount++
-		if board.GameOver() {
-			winner = currentPlayer()
-		}
-		currentPlayerIndex++
-		currentPlayerIndex %= len(Players)
-
-		move.Result <- MoveResult{currentStatus(), nil}
-	}
-
-	g.FirstUpdate <- *currentStatus()
-	close(g.FirstUpdate)
-
-	defer close(g.end)
-	defer close(g.Moves)
-	for {
-		select {
-		case <-g.end:
-			return
-		case move := <-g.Moves:
-			applyMove(&move)
-		}
-	}
-}
-
-func NewBoard(StartCount PaperclipCount) *Board {
-	return &Board{PaperclipCount: StartCount}
+func NewBoard(Players []PlayerID, StartCount int, Id BoardID) *Board {
+	return &Board{PaperclipCount: StartCount, Players: Players, ID: Id}
 }
 
 func (b *Board) Render() string {
-	return strconv.Itoa(int(b.PaperclipCount))
+	return strconv.Itoa(b.PaperclipCount)
 }
 
 func (b *Board) Apply(move *Move) error {
 	if valid, err := Valid(move, b); !valid {
 		return errors.New(fmt.Sprint("Could not apply move ", move, ":", err.Error()))
 	}
-	b.PaperclipCount -= PaperclipCount(*move)
+	b.PaperclipCount -= int(*move)
 
+	if b.GameOver() {
+		b.WinningPlayer = b.CurrentPlayer()
+	}
+
+	b.currentPlayerIndex = (b.currentPlayerIndex + 1) % len(b.Players)
 	return nil
 }
 
 func (b *Board) GameOver() bool {
 	return b.PaperclipCount == 0
+}
+
+func (b *Board) CurrentPlayer() PlayerID {
+	return b.Players[b.currentPlayerIndex]
+}
+
+func (b *Board) WinningPlayer() PlayerID {
+	if !b.GameOver() {
+		return ""
+	}
+	return b.WinningPlayer
 }
 
 func (m *Move) Valid() (bool, error) {
@@ -152,7 +76,7 @@ func Valid(m *Move, b *Board) (bool, error) {
 	if b.GameOver() {
 		return false, errors.New("Game has already ended")
 	}
-	if PaperclipCount(*m) > b.PaperclipCount {
+	if int(*m) > b.PaperclipCount {
 		return false, errors.New("Not enough paperclips")
 	}
 	return true, nil

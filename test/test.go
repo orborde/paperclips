@@ -4,7 +4,7 @@ import "testing"
 import . "paperclips/paperclips"
 
 type GameAdapter interface {
-	FirstUpdate() BoardMessage
+	BoardState() Board
 	RunMove(m *Move, p PlayerID, tc TurnCount) (*BoardMessage, error)
 }
 
