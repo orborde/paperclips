@@ -41,7 +41,10 @@ func NewServerGameAdapter(server PaperclipServer, players []PlayerID, startCount
 
 func (a *ServerGameAdapter) BoardState() (board *Board) {
 	// Fetch the players list.
-	players := a.server.GetPlayerList()
+	players, err := a.server.GetPlayerList()
+	if err != nil {
+		panic(fmt.Sprint("Server failed to return players list:", err))
+	}
 
 	// Grab a player off it and fetch his games.
 	p := players[0]

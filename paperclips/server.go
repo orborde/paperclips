@@ -31,9 +31,7 @@ type PaperclipServer interface {
 	// Creates a new game on the server between the listed Players.
 	NewGame(Players []PlayerID, StartCount int) (BoardID, error)
 	// Grabs the player list.
-	//
-	// TODO: Error return value.
-	GetPlayerList() []PlayerID
+	GetPlayerList() ([]PlayerID, error)
 }
 
 // Clients will poll the GetGames interface periodically to receive a
@@ -67,12 +65,12 @@ func (s *Server) NewPlayer(Name PlayerID) error {
 	return nil
 }
 
-func (s *Server) GetPlayerList() []PlayerID {
+func (s *Server) GetPlayerList() ([]PlayerID, error) {
 	ret := make([]PlayerID, 0)
 	for p := range s.games {
 		ret = append(ret, p)
 	}
-	return ret
+	return ret, nil
 }
 
 func (s *Server) getNextBoardId() BoardID {
