@@ -30,6 +30,10 @@ type PaperclipServer interface {
 	NewPlayer(Name PlayerID) error
 	// Creates a new game on the server between the listed Players.
 	NewGame(Players []PlayerID, StartCount int) (BoardID, error)
+	// Grabs the player list.
+	//
+	// TODO: Error return value.
+	GetPlayerList() []PlayerID
 }
 
 // Clients will poll the GetGames interface periodically to receive a

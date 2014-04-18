@@ -9,12 +9,16 @@ import (
 import . "paperclips/paperclips"
 
 type ServerGameAdapter struct {
-	server Server
+	server PaperclipServer
 	board  BoardID
 }
 
-func NewServerGameAdapter(players []PlayerID, startCount int) GameAdapter {
-	ret := &ServerGameAdapter{server: *NewServer()}
+func NewLocalServerGameAdapter(players []PlayerID, startCount int) GameAdapter {
+	return NewServerGameAdapter(NewServer(), players, startCount)
+}
+
+func NewServerGameAdapter(server PaperclipServer, players []PlayerID, startCount int) GameAdapter {
+	ret := &ServerGameAdapter{server: server}
 
 	// Set up players on server
 	for _, p := range players {
@@ -56,5 +60,5 @@ func (a *ServerGameAdapter) RunMove(m *Move, p PlayerID) (*Board, error) {
 }
 
 func TestServer(t *testing.T) {
-	TestGamePlay(t, NewServerGameAdapter)
+	TestGamePlay(t, NewLocalServerGameAdapter)
 }
