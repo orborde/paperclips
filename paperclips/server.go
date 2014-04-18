@@ -20,16 +20,18 @@ import (
 //
 // Clients interact with the server via a polling RPC interface,
 // consisting of a couple of major methods:
-//
-// - GetGames(PlayerID) returns a list of games the player identified
-//   by PlayerID is currently participating in on the server.
-// - MakeMove(Board, Move) makes Move on Board, updating the server's
-//   game state.
-// - NewPlayer(PlayerID) registers a new Player as participating in
-//   the game server.
-// - NewGame(Players []PlayerID, GameOptions) creates a new game on
-//   the server between the listed Players.
-//
+type PaperclipServer interface {
+	// Returns a list of games the player identified by PlayerID is
+	// currently participating in on the server.
+	GetGames(PlayerID) (map[BoardID]*Board, error)
+	// Makes Move on Board, updating the server's game state.
+	MakeMove(Player PlayerID, Board BoardID, Move Move) error
+	// Registers a new Player as participating in the game server.
+	NewPlayer(Name PlayerID) error
+	// Creates a new game on the server between the listed Players.
+	NewGame(Players []PlayerID, StartCount int) (BoardID, error)
+}
+
 // Clients will poll the GetGames interface periodically to receive a
 // list of active Boards; later, they will send MakeMove() RPCs back
 // to submit the user's moves on her Boards. The RPC interface is
