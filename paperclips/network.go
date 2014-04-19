@@ -7,11 +7,11 @@ import (
 )
 
 type RPCServer struct {
-	server LocalServer
+	server *LocalServer
 }
 
 func NewRPCServer() *RPCServer {
-	return &RPCServer{*NewLocalServer()}
+	return &RPCServer{NewLocalServer()}
 }
 
 func (s *RPCServer) NewPlayer(P PlayerID, _ *struct{}) error {
