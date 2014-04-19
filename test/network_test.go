@@ -12,13 +12,14 @@ import . "paperclips/paperclips"
 const address string = "localhost:0"
 
 func NewRPCServerGameAdapter(players []PlayerID, startCount int) GameAdapter {
-	rpcServer := NewRPCServer()
-	rpc.Register(rpcServer)
+	rpcServer := rpc.NewServer()
+	gameServer := NewRPCServer()
+	rpcServer.Register(gameServer)
 	l, e := net.Listen("tcp", address)
 	if e != nil {
 		log.Fatal("listen error:", e)
 	}
-	go rpc.Accept(l)
+	go rpcServer.Accept(l)
 
 	conn, err := net.Dial("tcp", l.Addr().String())
 	if err != nil {
