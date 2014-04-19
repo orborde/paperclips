@@ -1,6 +1,5 @@
 package paperclips
 
-/*
 import (
 	"io"
 	"log"
@@ -93,4 +92,3 @@ func (c *RPCClient) MakeMove(Player PlayerID, Board BoardID, Move Move) error {
 	return c.Call("RPCServer.MakeMove",
 		RPCMove{Player, Board, Move}, nil)
 }
-*/
