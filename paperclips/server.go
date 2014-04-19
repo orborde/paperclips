@@ -20,7 +20,7 @@ import (
 //
 // Clients interact with the server via a polling RPC interface,
 // consisting of a couple of major methods:
-type PaperclipServer interface {
+type Server interface {
 	// Returns a list of games the player identified by PlayerID is
 	// currently participating in on the server.
 	GetGames(PlayerID) (map[BoardID]*Board, error)
@@ -43,21 +43,21 @@ type PaperclipServer interface {
 // expected to store the downloaded list of active games and to queue
 // up the moves made for later delivery via MakeMove.
 
-type Server struct {
+type LocalServer struct {
 	games       map[PlayerID]map[BoardID]*Board
 	nextBoardId uint64
 }
 
-func NewServer() *Server {
-	return &Server{make(map[PlayerID]map[BoardID]*Board), 0}
+func NewLocalServer() *LocalServer {
+	return &LocalServer{make(map[PlayerID]map[BoardID]*Board), 0}
 }
 
-func (s *Server) PlayerExists(P PlayerID) bool {
+func (s *LocalServer) PlayerExists(P PlayerID) bool {
 	_, ret := s.games[P]
 	return ret
 }
 
-func (s *Server) NewPlayer(Name PlayerID) error {
+func (s *LocalServer) NewPlayer(Name PlayerID) error {
 	if s.PlayerExists(Name) {
 		return errors.New("Player " + string(Name) + " already exists on server")
 	}
@@ -65,7 +65,7 @@ func (s *Server) NewPlayer(Name PlayerID) error {
 	return nil
 }
 
-func (s *Server) GetPlayerList() ([]PlayerID, error) {
+func (s *LocalServer) GetPlayerList() ([]PlayerID, error) {
 	ret := make([]PlayerID, 0)
 	for p := range s.games {
 		ret = append(ret, p)
@@ -73,13 +73,13 @@ func (s *Server) GetPlayerList() ([]PlayerID, error) {
 	return ret, nil
 }
 
-func (s *Server) getNextBoardId() BoardID {
+func (s *LocalServer) getNextBoardId() BoardID {
 	ret := BoardID(strconv.FormatUint(s.nextBoardId, 10))
 	s.nextBoardId++
 	return ret
 }
 
-func (s *Server) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
+func (s *LocalServer) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
 	for _, p := range Players {
 		if !s.PlayerExists(p) {
 			//return errors.New("Player " + string(p) + " does not exist on server")
@@ -97,14 +97,14 @@ func (s *Server) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
 	return ID, nil
 }
 
-func (s *Server) GetGames(P PlayerID) (map[BoardID]*Board, error) {
+func (s *LocalServer) GetGames(P PlayerID) (map[BoardID]*Board, error) {
 	if !s.PlayerExists(P) {
 		return nil, errors.New(fmt.Sprint("Player", P, "does not exist."))
 	}
 	return s.games[P], nil
 }
 
-func (s *Server) MakeMove(player PlayerID, board BoardID, move Move) error {
+func (s *LocalServer) MakeMove(player PlayerID, board BoardID, move Move) error {
 	if !s.PlayerExists(player) {
 		return errors.New("Invalid player")
 	}

@@ -9,15 +9,15 @@ import (
 import . "paperclips/paperclips"
 
 type ServerGameAdapter struct {
-	server PaperclipServer
+	server Server
 	board  BoardID
 }
 
 func NewLocalServerGameAdapter(players []PlayerID, startCount int) GameAdapter {
-	return NewServerGameAdapter(NewServer(), players, startCount)
+	return NewServerGameAdapter(NewLocalServer(), players, startCount)
 }
 
-func NewServerGameAdapter(server PaperclipServer, players []PlayerID, startCount int) GameAdapter {
+func NewServerGameAdapter(server Server, players []PlayerID, startCount int) GameAdapter {
 	ret := &ServerGameAdapter{server: server}
 
 	// Set up players on server
