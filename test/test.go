@@ -14,18 +14,20 @@ func TestGamePlay(t *testing.T,
 	TestMoveSequence := func(players []PlayerID, startCount int,
 		moves []Move, expectedTurnSequence []PlayerID, expectedWinner PlayerID) {
 		Adapter := AdapterFactory(players, startCount)
-		currentBoard := Adapter.BoardState()
 
-		Play := func(idx int, m *Move) {
-			prevPlayer := currentBoard.CurrentPlayer()
-			board, err := Adapter.RunMove(m, currentBoard.CurrentPlayer())
+		Play := func(idx int, m *Move) bool {
+			prevPlayer := Adapter.BoardState().CurrentPlayer()
+			_, err := Adapter.RunMove(m, Adapter.BoardState().CurrentPlayer())
 			if err != nil {
 				t.Error("Failed to run move:", err)
+				return false
 			}
-			currentBoard = board
-			if currentBoard.CurrentPlayer() == prevPlayer {
+
+			if Adapter.BoardState().CurrentPlayer() == prevPlayer {
 				t.Error("Failed to advance player counter?!")
+				return false
 			}
+			return true
 		}
 
 		TestTurnSequence := func(expected, actual []PlayerID) {
@@ -42,14 +44,16 @@ func TestGamePlay(t *testing.T,
 
 		turnSequence := []PlayerID{players[0]}
 		for i, m := range moves {
-			Play(i, &m)
-			turnSequence = append(turnSequence, currentBoard.CurrentPlayer())
+			if !Play(i, &m) {
+				return
+			}
+			turnSequence = append(turnSequence, Adapter.BoardState().CurrentPlayer())
 		}
 
 		TestTurnSequence(expectedTurnSequence, turnSequence)
 
-		if expectedWinner != "" && expectedWinner != currentBoard.WinningPlayer {
-			t.Error("Expected", expectedWinner, "to win, but", currentBoard.WinningPlayer, "won")
+		if expectedWinner != "" && expectedWinner != Adapter.BoardState().WinningPlayer {
+			t.Error("Expected", expectedWinner, "to win, but", Adapter.BoardState().WinningPlayer, "won")
 		}
 	}
 
