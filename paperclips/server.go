@@ -82,10 +82,7 @@ func (s *LocalServer) getNextBoardId() BoardID {
 func (s *LocalServer) NewGame(Players []PlayerID, StartCount int) (BoardID, error) {
 	for _, p := range Players {
 		if !s.PlayerExists(p) {
-			//return errors.New("Player " + string(p) + " does not exist on server")
-			if err := s.NewPlayer(p); err != nil {
-				return "", err
-			}
+			return "", errors.New("Player " + string(p) + " does not exist on server")
 		}
 	}
 
