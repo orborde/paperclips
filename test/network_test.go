@@ -9,7 +9,7 @@ import (
 
 import . "paperclips/paperclips"
 
-const address string = "localhost:34824"
+const address string = "localhost:0"
 
 func NewRPCServerGameAdapter(players []PlayerID, startCount int) GameAdapter {
 	rpcServer := NewRPCServer()
@@ -20,7 +20,7 @@ func NewRPCServerGameAdapter(players []PlayerID, startCount int) GameAdapter {
 	}
 	go rpc.Accept(l)
 
-	conn, err := net.Dial("tcp", address)
+	conn, err := net.Dial("tcp", l.Addr().String())
 	if err != nil {
 		log.Fatal("connect error: ", err)
 	}
