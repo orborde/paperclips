@@ -111,6 +111,10 @@ func (s *LocalServer) MakeMove(player PlayerID, board BoardID, move Move) error 
 		return errors.New("Invalid board")
 	}
 
+	if player != targetBoard.CurrentPlayer() {
+		return errors.New(fmt.Sprint("Player ", player, " tried to make a move, but it is ", targetBoard.CurrentPlayer(), "'s turn."))
+	}
+
 	if valid, err := Valid(&move, targetBoard); !valid {
 		return errors.New("Invalid move: " + err.Error())
 	}
