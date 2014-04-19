@@ -27,7 +27,7 @@ func NewRPCServerGameAdapter(players []PlayerID, startCount int) GameAdapter {
 
 	rpcClient := NewRPCClient(conn)
 
-	ret := &ServerGameAdapter{server: rpcClient}
+	ret := NewServerGameAdapter(rpcClient, players, startCount)
 	return ret
 }
 
