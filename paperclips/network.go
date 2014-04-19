@@ -14,15 +14,15 @@ func NewRPCServer() *RPCServer {
 	return &RPCServer{NewServer()}
 }
 
-func (s *RPCServer) RegisterPlayer(P PlayerID, _ *struct{}) error {
+func (s *RPCServer) NewPlayer(P PlayerID, _ *struct{}) error {
 	log.Println("Registering player", P)
 	return s.server.NewPlayer(P)
 }
 
-func (s *RPCServer) GetPlayerList(_ bool, Ret *[]PlayerID) error {
+func (s *RPCServer) GetPlayerList(_ bool, Ret *[]PlayerID) (err error) {
 	log.Println("Fetching player list")
-	*Ret = s.server.GetPlayerList()
-	return nil
+	*Ret, err = s.server.GetPlayerList()
+	return err
 }
 
 type RPCNewGameArgs struct {
@@ -66,8 +66,8 @@ func NewRPCClient(Conn io.ReadWriteCloser) *RPCClient {
 	return &RPCClient{rpc.NewClient(Conn)}
 }
 
-func (c *RPCClient) RegisterPlayer(P PlayerID) error {
-	return c.Call("RPCServer.RegisterPlayer", P, nil)
+func (c *RPCClient) NewPlayer(P PlayerID) error {
+	return c.Call("RPCServer.NewPlayer", P, nil)
 }
 
 func (c *RPCClient) GetPlayerList() ([]PlayerID, error) {
