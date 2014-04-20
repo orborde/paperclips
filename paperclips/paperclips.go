@@ -19,7 +19,7 @@ type BoardID string
 type Board struct {
 	PaperclipCount     int
 	Players            []PlayerID
-	currentPlayerIndex int
+	CurrentPlayerIndex int
 	WinningPlayer      PlayerID
 	// TODO: Move history?
 }
@@ -42,7 +42,7 @@ func (b *Board) Apply(move *Move) error {
 		b.WinningPlayer = b.CurrentPlayer()
 	}
 
-	b.currentPlayerIndex = (b.currentPlayerIndex + 1) % len(b.Players)
+	b.CurrentPlayerIndex = (b.CurrentPlayerIndex + 1) % len(b.Players)
 	return nil
 }
 
@@ -51,7 +51,7 @@ func (b *Board) GameOver() bool {
 }
 
 func (b *Board) CurrentPlayer() PlayerID {
-	return b.Players[b.currentPlayerIndex]
+	return b.Players[b.CurrentPlayerIndex]
 }
 
 func (m *Move) Valid() (bool, error) {
