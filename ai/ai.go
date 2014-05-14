@@ -1,8 +1,6 @@
 package ai
 
 import (
-	"log"
-
 	. "paperclips/paperclips"
 )
 
@@ -35,7 +33,6 @@ func Progressions(b *Board) []Progression {
 func setToList(m map[PlayerID]bool) []PlayerID {
 	ret := make([]PlayerID, 0)
 	for k := range m {
-		log.Print("berkle: ", k)
 		ret = append(ret, k)
 	}
 	return ret
@@ -55,21 +52,17 @@ func ComputeWinner(b *Board) PlayerID {
 	}
 
 	possibleList := setToList(possibleWinners)
-	log.Print(b.PaperclipCount, b.CurrentPlayer(), possibleList)
 
 	// Are we one of the possible winners? We are the CHAMPIONS.
 	if _, ok := possibleWinners[b.CurrentPlayer()]; ok {
-		log.Print("I'm the winrar!")
 		return b.CurrentPlayer()
 	}
 
 	// Is there only one possible winner? Then that's the winner for this subtree.
 	if len(possibleWinners) == 1 {
-		log.Print("There can be only one: ", len(possibleList))
 		return possibleList[0]
 	}
 
 	// a winner is not me
-	log.Print("A winner is nobody")
 	return ""
 }
