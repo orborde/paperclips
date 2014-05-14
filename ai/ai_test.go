@@ -19,4 +19,6 @@ func TestComputeWinner(t *testing.T) {
 	checkWinner(2, "a")
 	checkWinner(3, "b")
 	checkWinner(4, "a")
+	checkWinner(5, "a")
+	checkWinner(6, "b")
 }
