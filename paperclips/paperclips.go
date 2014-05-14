@@ -13,6 +13,8 @@ const (
 	TakeTwo Move = 2
 )
 
+var Moves = []Move{TakeOne, TakeTwo}
+
 type PlayerID string
 type BoardID string
 
