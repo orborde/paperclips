@@ -39,30 +39,50 @@ func setToList(m map[PlayerID]bool) []PlayerID {
 }
 
 // Returns "" for "indeterminate"
+func GoComputeWinner(b *Board) chan PlayerID {
+	ret := make(chan PlayerID)
+
+	go func() {
+		if b.GameOver() {
+			ret <- b.WinningPlayer
+			return
+		}
+
+		// Figure out what the possible winners are in the subtree.
+		possibleWinners := make(map[PlayerID]bool)
+		var promises []chan PlayerID
+		for _, p := range Progressions(b) {
+			pr := GoComputeWinner(p.Board)
+			promises = append(promises, pr)
+		}
+
+		for _, pr := range promises {
+			subWinner := <-pr
+			possibleWinners[subWinner] = true
+		}
+
+		possibleList := setToList(possibleWinners)
+
+		// Are we one of the possible winners? We are the CHAMPIONS.
+		if _, ok := possibleWinners[b.CurrentPlayer()]; ok {
+			ret <- b.CurrentPlayer()
+			return
+		}
+
+		// Is there only one possible winner? Then that's the winner for this subtree.
+		if len(possibleWinners) == 1 {
+			ret <- possibleList[0]
+			return
+		}
+
+		// a winner is not me
+		ret <- ""
+		return
+	}()
+
+	return ret
+}
+
 func ComputeWinner(b *Board) PlayerID {
-	if b.GameOver() {
-		return b.WinningPlayer
-	}
-
-	// Figure out what the possible winners are in the subtree.
-	possibleWinners := make(map[PlayerID]bool)
-	for _, p := range Progressions(b) {
-		subWinner := ComputeWinner(p.Board)
-		possibleWinners[subWinner] = true
-	}
-
-	possibleList := setToList(possibleWinners)
-
-	// Are we one of the possible winners? We are the CHAMPIONS.
-	if _, ok := possibleWinners[b.CurrentPlayer()]; ok {
-		return b.CurrentPlayer()
-	}
-
-	// Is there only one possible winner? Then that's the winner for this subtree.
-	if len(possibleWinners) == 1 {
-		return possibleList[0]
-	}
-
-	// a winner is not me
-	return ""
+	return <-GoComputeWinner(b)
 }
